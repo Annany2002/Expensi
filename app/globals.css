@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+@theme {
+  --font-inter: 'Inter', sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; 
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333; 
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444; 
+}
+
+@layer utilities {
+    .glass {
+        @apply bg-neutral-900 border border-neutral-800 shadow-xl;
+    }
+    .glass-input {
+        @apply bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-2 focus:outline-none focus:border-neutral-600 transition-all text-white placeholder-neutral-500;
+    }
+    .btn-primary {
+        @apply bg-white text-black font-medium py-2 px-6 rounded-lg transition-all hover:bg-neutral-200 active:scale-95;
+    }
+    .btn-secondary {
+        @apply bg-neutral-800 hover:bg-neutral-700 text-white font-medium py-2 px-6 rounded-lg transition-all active:scale-95 border border-neutral-700;
+    }
+}
