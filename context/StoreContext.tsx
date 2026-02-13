@@ -30,6 +30,7 @@ interface StoreContextType extends StoreState {
   addCategory: (category: Omit<Category, 'id' | 'spent'>) => void;
   deleteCategory: (id: string) => void;
   addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
+  editTransaction: (id: string, updates: Partial<Omit<Transaction, 'id'>>) => void;
   deleteTransaction: (id: string) => void;
   resetData: () => void;
   setCurrency: (currency: 'USD' | 'INR') => void;
@@ -132,6 +133,32 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const editTransaction = (id: string, updates: Partial<Omit<Transaction, 'id'>>) => {
+      setState(prev => {
+          const oldTx = prev.transactions.find(t => t.id === id);
+          if (!oldTx) return prev;
+
+          const amountDiff = (updates.amount ?? oldTx.amount) - oldTx.amount;
+
+          const updatedCategories = prev.categories.map(cat => {
+              if (cat.id === oldTx.categoryId) {
+                  return { ...cat, spent: cat.spent + amountDiff };
+              }
+              return cat;
+          });
+
+          const updatedTransactions = prev.transactions.map(t =>
+              t.id === id ? { ...t, ...updates } : t
+          );
+
+          return {
+              ...prev,
+              categories: updatedCategories,
+              transactions: updatedTransactions,
+          };
+      });
+  };
+
   const deleteTransaction = (id: string) => {
       setState(prev => {
           const transaction = prev.transactions.find(t => t.id === id);
@@ -172,6 +199,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       addCategory,
       deleteCategory,
       addTransaction,
+      editTransaction,
       deleteTransaction,
       resetData,
       setCurrency,
