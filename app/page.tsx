@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useStore } from '@/context/StoreContext';
+import { useStore, Expense } from '@/context/StoreContext';
 import CategoryCard from '@/components/CategoryCard';
 import AddCategoryModal from '@/components/AddCategoryModal';
 import TransactionHistoryModal from '@/components/TransactionHistoryModal';
 import MonthPickerModal from '@/components/MonthPickerModal';
 import SpendingAnalyticsCharts from '@/components/SpendingAnalyticsCharts';
+import GlobalSearchModal from '@/components/GlobalSearchModal';
+import { exportToCSV, exportToJSON } from '@/lib/export';
 import {
   Plus,
   Settings,
@@ -23,6 +25,11 @@ import {
   RotateCcw,
   LogOut,
   User as UserIcon,
+  Search,
+  Download,
+  Zap,
+  CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react';
 
 function Skeleton({ className }: { className?: string }) {
@@ -76,6 +83,7 @@ export default function Home() {
     goToNextMonth,
     goToCurrentMonth,
     categories,
+    expenses,
     monthlyBudget,
     setMonthlyBudget,
     stats,
@@ -85,6 +93,8 @@ export default function Home() {
 
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const [isEditingBudget, setIsEditingBudget] = useState(false);
   const [newBudget, setNewBudget] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
@@ -94,12 +104,74 @@ export default function Home() {
     ? categories.find((c) => c.id === selectedCategoryId) || null
     : null;
 
+  // Keyboard shortcut: Cmd+K / Ctrl+K for Global Search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchModalOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Redirect to /auth if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
       router.replace('/auth');
     }
   }, [user, authLoading, router]);
+
+  // Monthly calculations
+  const totalSpentThisMonth = categories.reduce((sum, cat) => sum + cat.spent, 0);
+  const hasBudget = monthlyBudget !== null && monthlyBudget > 0;
+  const remaining = hasBudget ? monthlyBudget - totalSpentThisMonth : 0;
+  const percentage = hasBudget ? (totalSpentThisMonth / monthlyBudget) * 100 : 0;
+  const isOverBudget = hasBudget && totalSpentThisMonth > monthlyBudget;
+
+  // Runway & Daily Pace Forecast Calculations
+  const runwayStats = useMemo(() => {
+    if (!monthlyBudget || monthlyBudget <= 0) return null;
+
+    const [yearStr, monthStr] = selectedMonth.split('-');
+    const year = parseInt(yearStr, 10);
+    const month = parseInt(monthStr, 10);
+    const now = new Date();
+    const isCurrentMonth = now.getFullYear() === year && now.getMonth() + 1 === month;
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    let dayOfCalc = daysInMonth;
+    if (isCurrentMonth) {
+      dayOfCalc = Math.max(1, now.getDate());
+    }
+
+    const daysRemaining = Math.max(0, daysInMonth - dayOfCalc);
+    const dailyAverage = totalSpentThisMonth / dayOfCalc;
+    const projectedSpend = isCurrentMonth
+      ? totalSpentThisMonth + dailyAverage * daysRemaining
+      : totalSpentThisMonth;
+
+    const remainingBudget = monthlyBudget - totalSpentThisMonth;
+    const safeDailyAllowance =
+      daysRemaining > 0 ? Math.max(0, remainingBudget / daysRemaining) : remainingBudget;
+
+    const isPaceOver = projectedSpend > monthlyBudget;
+    const paceDiff = Math.abs(projectedSpend - monthlyBudget);
+
+    return {
+      daysInMonth,
+      dayOfCalc,
+      daysRemaining,
+      dailyAverage,
+      projectedSpend,
+      remainingBudget,
+      safeDailyAllowance,
+      isPaceOver,
+      paceDiff,
+      isCurrentMonth,
+    };
+  }, [monthlyBudget, selectedMonth, totalSpentThisMonth]);
 
   if (authLoading || (!user && !loading)) {
     return <PageSkeleton />;
@@ -115,13 +187,6 @@ export default function Home() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   })();
   const isCurrentMonthViewed = selectedMonth === currentRealMonth;
-
-  // Monthly stats calculations
-  const totalSpentThisMonth = categories.reduce((sum, cat) => sum + cat.spent, 0);
-  const hasBudget = monthlyBudget !== null && monthlyBudget > 0;
-  const remaining = hasBudget ? monthlyBudget - totalSpentThisMonth : 0;
-  const percentage = hasBudget ? (totalSpentThisMonth / monthlyBudget) * 100 : 0;
-  const isOverBudget = hasBudget && totalSpentThisMonth > monthlyBudget;
 
   const handleUpdateBudget = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,6 +205,29 @@ export default function Home() {
     router.replace('/auth');
   };
 
+  const handleSelectSearchedExpense = (exp: Expense) => {
+    if (exp.month !== selectedMonth) {
+      setSelectedMonth(exp.month);
+    }
+    setSelectedCategoryId(exp.categoryId);
+  };
+
+  const handleExportMonthCSV = () => {
+    const monthExpenses = expenses.filter((e) => e.month === selectedMonth);
+    exportToCSV(monthExpenses, categories, `expensi_${selectedMonth}.csv`);
+    setIsExportMenuOpen(false);
+  };
+
+  const handleExportAllCSV = () => {
+    exportToCSV(expenses, categories, `expensi_all_time.csv`);
+    setIsExportMenuOpen(false);
+  };
+
+  const handleExportJSON = () => {
+    exportToJSON({ monthlyBudget, categories, expenses }, `expensi_backup_${selectedMonth}.json`);
+    setIsExportMenuOpen(false);
+  };
+
   return (
     <main className="mx-auto min-h-screen max-w-5xl bg-neutral-50 p-4 text-neutral-900 md:p-8 dark:bg-black dark:text-white">
       {/* Header */}
@@ -153,8 +241,21 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Controls: Month Picker, User Profile, Theme & Logout */}
+        {/* Controls: Search, Month Picker, Export, Theme, Profile */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* Global Search Button */}
+          <button
+            onClick={() => setIsSearchModalOpen(true)}
+            className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-600 shadow-sm transition-all hover:border-neutral-300 hover:text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:border-neutral-700 dark:hover:text-white"
+            title="Search expenses (Cmd+K)"
+          >
+            <Search size={14} />
+            <span className="hidden sm:inline">Search</span>
+            <kbd className="hidden rounded border border-neutral-200 bg-neutral-100 px-1.5 py-0.5 font-mono text-[10px] text-neutral-500 sm:inline dark:border-neutral-700 dark:bg-neutral-800">
+              ⌘K
+            </kbd>
+          </button>
+
           {/* Month Navigator */}
           <div className="flex items-center rounded-xl border border-neutral-200 bg-white p-1 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <button
@@ -193,6 +294,40 @@ export default function Home() {
             </button>
           )}
 
+          {/* Export Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
+              className="rounded-xl border border-neutral-200 bg-white p-2 text-neutral-600 shadow-sm transition-all hover:text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+              title="Export Data"
+            >
+              <Download size={16} />
+            </button>
+
+            {isExportMenuOpen && (
+              <div className="animate-in fade-in absolute right-0 z-40 mt-2 w-48 space-y-1 rounded-2xl border border-neutral-200 bg-white p-2 shadow-xl dark:border-neutral-800 dark:bg-neutral-900">
+                <button
+                  onClick={handleExportMonthCSV}
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                >
+                  <Download size={13} /> Export {monthTitle} (.csv)
+                </button>
+                <button
+                  onClick={handleExportAllCSV}
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                >
+                  <Download size={13} /> Export All Expenses (.csv)
+                </button>
+                <button
+                  onClick={handleExportJSON}
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                >
+                  <Download size={13} /> Full JSON Backup (.json)
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
@@ -227,7 +362,7 @@ export default function Home() {
       {/* Metrics Section */}
       <section className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
         {/* Main Card: Month Spending & Optional Budget */}
-        <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm md:col-span-2 dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="space-y-4 rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm md:col-span-2 dark:border-neutral-800 dark:bg-neutral-900">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold tracking-wider text-neutral-500 uppercase">
@@ -316,8 +451,8 @@ export default function Home() {
               </div>
             </form>
           ) : hasBudget ? (
-            /* Budget Stats & Progress */
-            <div className="space-y-2 pt-1">
+            /* Budget Stats & Progress & Runway Forecast */
+            <div className="space-y-3 pt-1">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold tracking-wider text-neutral-500 uppercase">
                   Remaining:{' '}
@@ -343,6 +478,44 @@ export default function Home() {
                   style={{ width: `${Math.min(percentage, 100)}%` }}
                 />
               </div>
+
+              {/* Runway & Daily Pace Assistant Pill */}
+              {runwayStats && (
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-neutral-100 bg-neutral-50 p-3 text-xs dark:border-neutral-800/80 dark:bg-neutral-800/50">
+                  <div className="flex items-center gap-2">
+                    <div className="rounded-lg bg-blue-100 p-1 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
+                      <Zap size={14} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-neutral-900 dark:text-white">
+                        Avg: {formatINR(Math.round(runwayStats.dailyAverage))}/day
+                      </p>
+                      {runwayStats.daysRemaining > 0 ? (
+                        <p className="text-[11px] text-neutral-500">
+                          Safe limit: {formatINR(Math.round(runwayStats.safeDailyAllowance))}/day (
+                          {runwayStats.daysRemaining} days left)
+                        </p>
+                      ) : (
+                        <p className="text-[11px] text-neutral-500">Month ended</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    {runwayStats.isPaceOver ? (
+                      <span className="flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300">
+                        <AlertTriangle size={12} />
+                        Pace: +{formatINR(Math.round(runwayStats.paceDiff))}
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
+                        <CheckCircle2 size={12} />
+                        On Track
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             /* Optional budget not set indicator */
@@ -363,7 +536,7 @@ export default function Home() {
         {/* Secondary Cards Column: All-Time Spent & Active EMIs */}
         <div className="space-y-4">
           {/* Lifetime Total Spent */}
-          <div className="space-y-1 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+          <div className="space-y-1 rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <div className="flex items-center justify-between text-neutral-500">
               <span className="text-xs font-bold tracking-wider uppercase">All-Time Total</span>
               <TrendingUp size={15} className="text-emerald-500" />
@@ -377,7 +550,7 @@ export default function Home() {
           </div>
 
           {/* Active EMI Commitments */}
-          <div className="space-y-1 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+          <div className="space-y-1 rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <div className="flex items-center justify-between text-neutral-500">
               <span className="text-xs font-bold tracking-wider uppercase">Active EMIs</span>
               <CreditCard size={15} className="text-purple-500" />
@@ -415,7 +588,7 @@ export default function Home() {
         </div>
 
         {categories.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-neutral-300 bg-white/50 p-12 text-center dark:border-neutral-800 dark:bg-neutral-900/30">
+          <div className="rounded-3xl border border-dashed border-neutral-300 bg-white/50 p-12 text-center dark:border-neutral-800 dark:bg-neutral-900/30">
             <p className="mb-4 text-sm text-neutral-500">No categories created yet.</p>
             <button onClick={() => setIsCategoryModalOpen(true)} className="btn-primary text-xs">
               Create Your First Category
@@ -449,6 +622,11 @@ export default function Home() {
         onClose={() => setIsMonthPickerOpen(false)}
         selectedMonth={selectedMonth}
         onSelectMonth={setSelectedMonth}
+      />
+      <GlobalSearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        onSelectExpense={handleSelectSearchedExpense}
       />
     </main>
   );
