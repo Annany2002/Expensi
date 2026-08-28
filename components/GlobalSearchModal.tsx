@@ -18,6 +18,7 @@ export default function GlobalSearchModal({
   const { expenses, categories, formatINR } = useStore();
   const [query, setQuery] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
+  const [selectedModeFilter, setSelectedModeFilter] = useState<string>('all');
   const [onlyEmi, setOnlyEmi] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -30,6 +31,7 @@ export default function GlobalSearchModal({
   const handleClose = () => {
     setQuery('');
     setSelectedCategoryFilter('all');
+    setSelectedModeFilter('all');
     setOnlyEmi(false);
     onClose();
   };
@@ -47,17 +49,28 @@ export default function GlobalSearchModal({
         if (onlyEmi && !exp.isEmi) return false;
         if (selectedCategoryFilter !== 'all' && exp.categoryId !== selectedCategoryFilter)
           return false;
+        if (selectedModeFilter !== 'all') {
+          const mode = exp.isEmi ? 'Card' : exp.paymentMethod || 'UPI';
+          if (mode !== selectedModeFilter) return false;
+        }
         if (!q) return true;
 
         const catName = categoryMap.get(exp.categoryId)?.name?.toLowerCase() || '';
         const desc = exp.description.toLowerCase();
         const amt = String(exp.amount);
         const date = exp.date;
+        const mode = exp.paymentMethod?.toLowerCase() || 'upi';
 
-        return desc.includes(q) || catName.includes(q) || amt.includes(q) || date.includes(q);
+        return (
+          desc.includes(q) ||
+          catName.includes(q) ||
+          amt.includes(q) ||
+          date.includes(q) ||
+          mode.includes(q)
+        );
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [expenses, query, selectedCategoryFilter, onlyEmi, categoryMap]);
+  }, [expenses, query, selectedCategoryFilter, selectedModeFilter, onlyEmi, categoryMap]);
 
   if (!isOpen) return null;
 
@@ -72,7 +85,7 @@ export default function GlobalSearchModal({
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search expenses by keyword, category, date, or amount..."
+            placeholder="Search expenses by keyword, category, payment mode, date, or amount..."
             className="flex-1 bg-transparent text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none dark:text-white"
           />
           {query && (
@@ -93,7 +106,7 @@ export default function GlobalSearchModal({
 
         {/* Filter Pills */}
         <div className="flex flex-wrap items-center gap-2 border-b border-neutral-100 px-4 py-2.5 text-xs dark:border-neutral-800">
-          <span className="font-semibold text-neutral-400">Filter:</span>
+          <span className="font-semibold text-neutral-400">Category:</span>
           <button
             onClick={() => setSelectedCategoryFilter('all')}
             className={`rounded-lg px-2.5 py-1 font-semibold transition-all ${
@@ -102,7 +115,7 @@ export default function GlobalSearchModal({
                 : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300'
             }`}
           >
-            All Categories
+            All
           </button>
           {categories.map((c) => (
             <button
@@ -118,6 +131,24 @@ export default function GlobalSearchModal({
               <span>{c.name}</span>
             </button>
           ))}
+
+          <div className="mx-1 h-3 w-px bg-neutral-200 dark:bg-neutral-800" />
+
+          <span className="font-semibold text-neutral-400">Mode:</span>
+          {['UPI', 'Card', 'Cash', 'NetBanking'].map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setSelectedModeFilter(selectedModeFilter === mode ? 'all' : mode)}
+              className={`rounded-lg px-2.5 py-1 font-semibold transition-all ${
+                selectedModeFilter === mode
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300'
+              }`}
+            >
+              {mode}
+            </button>
+          ))}
+
           <button
             onClick={() => setOnlyEmi(!onlyEmi)}
             className={`flex items-center gap-1 rounded-lg px-2.5 py-1 font-semibold transition-all ${
@@ -160,12 +191,16 @@ export default function GlobalSearchModal({
                         <p className="text-sm font-semibold text-neutral-900 dark:text-white">
                           {exp.description}
                         </p>
-                        {exp.isEmi && (
+                        {exp.isEmi ? (
                           <span className="rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-700 dark:bg-purple-950 dark:text-purple-300">
                             EMI{' '}
                             {exp.emiDetails
                               ? `${exp.emiDetails.installmentIndex}/${exp.emiDetails.totalTenure}`
                               : ''}
+                          </span>
+                        ) : (
+                          <span className="rounded-md border border-neutral-200 bg-neutral-100 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400">
+                            {exp.paymentMethod || 'UPI'}
                           </span>
                         )}
                       </div>

@@ -17,7 +17,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { useStore } from '@/context/StoreContext';
-import { TrendingUp, PieChart as PieIcon, BarChart3, Calendar } from 'lucide-react';
+import { TrendingUp, PieChart as PieIcon, BarChart3, Calendar, Wallet } from 'lucide-react';
 
 interface SpendingAnalyticsChartsProps {
   currentMonth: string; // e.g. "2026-08"
@@ -39,6 +39,14 @@ interface CategoryPoint {
   percentage: string;
 }
 
+interface PaymentModePoint {
+  name: string;
+  value: number;
+  count: number;
+  color: string;
+  percentage: string;
+}
+
 interface MonthlyPoint {
   month: string;
   label: string;
@@ -47,6 +55,13 @@ interface MonthlyPoint {
   total: number;
   isCurrent: boolean;
 }
+
+const PAYMENT_MODE_COLORS: Record<string, string> = {
+  UPI: '#0284c7', // Sky Blue
+  Card: '#9333ea', // Purple
+  Cash: '#16a34a', // Emerald
+  NetBanking: '#ea580c', // Orange
+};
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-IN', {
@@ -122,6 +137,39 @@ function CustomPieTooltip({
   return null;
 }
 
+function CustomPaymentModeTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: PaymentModePoint }>;
+}) {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="rounded-xl border border-neutral-200 bg-white/95 p-3 text-xs shadow-xl backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/95">
+        <div className="flex items-center gap-2 font-bold text-neutral-900 dark:text-white">
+          <span
+            className="inline-block h-2.5 w-2.5 rounded-full"
+            style={{ backgroundColor: data.color }}
+          />
+          <span>{data.name}</span>
+        </div>
+        <div className="mt-1 space-y-0.5">
+          <p className="text-sm font-black text-neutral-900 dark:text-white">
+            {formatCurrency(data.value)}{' '}
+            <span className="text-xs font-normal text-neutral-500">({data.percentage}%)</span>
+          </p>
+          <p className="text-[10px] text-neutral-500">
+            {data.count} transaction{data.count === 1 ? '' : 's'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
 function CustomMonthlyTooltip({
   active,
   payload,
@@ -156,7 +204,7 @@ function CustomMonthlyTooltip({
 
 export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyticsChartsProps) {
   const { expenses, categories, monthlyBudget, formatINR, theme } = useStore();
-  const [activeTab, setActiveTab] = useState<'daily' | 'category' | 'monthly'>('daily');
+  const [activeTab, setActiveTab] = useState<'daily' | 'category' | 'modes' | 'monthly'>('daily');
 
   const isDark = theme === 'dark';
 
@@ -174,7 +222,6 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
     const month = parseInt(monthStr, 10);
     const daysInMonth = new Date(year, month, 0).getDate();
 
-    // Map daily expenses
     const dailyMap: { [day: number]: { amount: number; count: number; items: string[] } } = {};
     for (let d = 1; d <= daysInMonth; d++) {
       dailyMap[d] = { amount: 0, count: 0, items: [] };
@@ -242,7 +289,39 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
       .sort((a, b) => b.value - a.value);
   }, [categories, currentMonthExpenses]);
 
-  // 4. Multi-Month History (Last 4 months + current + future 1 month)
+  // 4. Payment Modes Breakdown Data
+  const paymentModesData: PaymentModePoint[] = useMemo(() => {
+    const modes: Record<string, { value: number; count: number }> = {
+      UPI: { value: 0, count: 0 },
+      Card: { value: 0, count: 0 },
+      Cash: { value: 0, count: 0 },
+      NetBanking: { value: 0, count: 0 },
+    };
+
+    currentMonthExpenses.forEach((exp) => {
+      const mode = exp.isEmi ? 'Card' : exp.paymentMethod || 'UPI';
+      if (!modes[mode]) {
+        modes[mode] = { value: 0, count: 0 };
+      }
+      modes[mode].value += exp.amount;
+      modes[mode].count += 1;
+    });
+
+    const total = currentMonthExpenses.reduce((sum, e) => sum + e.amount, 0);
+
+    return Object.entries(modes)
+      .filter(([, data]) => data.value > 0)
+      .map(([name, data]) => ({
+        name,
+        value: data.value,
+        count: data.count,
+        color: PAYMENT_MODE_COLORS[name] || '#6b7280',
+        percentage: total > 0 ? ((data.value / total) * 100).toFixed(1) : '0',
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [currentMonthExpenses]);
+
+  // 5. Multi-Month History (Last 4 months + current + future 1 month)
   const monthlyData: MonthlyPoint[] = useMemo(() => {
     const [currY, currM] = currentMonth.split('-').map(Number);
     const monthsList: string[] = [];
@@ -287,12 +366,13 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
             Spending Analytics & Visuals
           </h2>
           <p className="text-xs text-neutral-500">
-            Interactive breakdown of daily spending, category weights, and multi-month trends
+            Interactive breakdown of daily spending, categories, payment methods, and multi-month
+            trends
           </p>
         </div>
 
         {/* Tab switcher */}
-        <div className="flex rounded-xl bg-neutral-100 p-1 dark:bg-neutral-800">
+        <div className="flex flex-wrap rounded-xl bg-neutral-100 p-1 dark:bg-neutral-800">
           <button
             onClick={() => setActiveTab('daily')}
             className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
@@ -314,6 +394,17 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
           >
             <PieIcon size={14} />
             <span>Categories</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('modes')}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+              activeTab === 'modes'
+                ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-900 dark:text-white'
+                : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+            }`}
+          >
+            <Wallet size={14} />
+            <span>Payment Modes</span>
           </button>
           <button
             onClick={() => setActiveTab('monthly')}
@@ -444,7 +535,7 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
                       className="h-3 w-3 shrink-0 rounded-full"
                       style={{ backgroundColor: cat.color }}
                     />
-                    <span className="max-w-[110px] truncate font-semibold text-neutral-900 dark:text-white">
+                    <span className="max-w-27.5 truncate font-semibold text-neutral-900 dark:text-white">
                       {cat.name}
                     </span>
                   </div>
@@ -454,6 +545,64 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
                     </span>
                     <span className="ml-1.5 text-[10px] font-medium text-neutral-500">
                       ({cat.percentage}%)
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : activeTab === 'modes' ? (
+          /* Payment Modes Donut & Breakdown */
+          <div className="flex h-full flex-col items-center gap-6 sm:flex-row">
+            <div className="h-full flex-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={paymentModesData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={95}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    {paymentModesData.map((entry, index) => (
+                      <Cell
+                        key={`mode-cell-${index}`}
+                        fill={entry.color}
+                        stroke={isDark ? '#171717' : '#ffffff'}
+                        strokeWidth={2}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomPaymentModeTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Payment mode card list */}
+            <div className="flex w-full flex-col justify-center space-y-2 overflow-y-auto sm:w-64">
+              {paymentModesData.map((mode) => (
+                <div
+                  key={mode.name}
+                  className="flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50 px-3 py-2.5 text-xs dark:border-neutral-800 dark:bg-neutral-800/50"
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="h-3 w-3 shrink-0 rounded-full"
+                      style={{ backgroundColor: mode.color }}
+                    />
+                    <div>
+                      <p className="font-semibold text-neutral-900 dark:text-white">{mode.name}</p>
+                      <p className="text-[10px] text-neutral-500">{mode.count} txns</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-bold text-neutral-900 dark:text-white">
+                      {formatINR(mode.value)}
+                    </span>
+                    <span className="ml-1.5 text-[10px] font-medium text-neutral-500">
+                      ({mode.percentage}%)
                     </span>
                   </div>
                 </div>
@@ -519,6 +668,9 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
             Showing category share of total ₹
             {formatINR(currentMonthExpenses.reduce((s, e) => s + e.amount, 0))} spent
           </span>
+        )}
+        {activeTab === 'modes' && (
+          <span>Tracking spending share by payment method (UPI, Card, Cash, NetBanking)</span>
         )}
         {activeTab === 'monthly' && (
           <div className="flex items-center gap-4">
