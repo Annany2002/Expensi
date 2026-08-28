@@ -1,210 +1,518 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  ReactNode,
+} from 'react';
+
+export interface User {
+  id: string;
+  email: string;
+  name?: string;
+}
 
 export interface Category {
   id: string;
   name: string;
   limit: number;
-  spent: number; // Calculated field, but can be useful to cache or compute on the fly
+  spent: number;
   color: string;
 }
 
-export interface Transaction {
+export interface EmiDetails {
+  groupId: string;
+  installmentIndex: number;
+  totalTenure: number;
+  totalAmount: number;
+  monthlyAmount: number;
+}
+
+export interface Expense {
   id: string;
   categoryId: string;
   amount: number;
-  date: string; // ISO string
+  date: string; // YYYY-MM-DD
+  month: string; // YYYY-MM
   description: string;
+  isEmi: boolean;
+  emiDetails?: EmiDetails | null;
 }
 
-interface StoreState {
-  monthlyBudget: number;
+export interface MonthStats {
+  allTimeTotalSpent: number;
+  allTimeCount: number;
+  monthTotalSpent: number;
+  monthEmiTotal: number;
+  monthEmiCount: number;
+}
+
+interface StoreContextType {
+  // Auth
+  user: User | null;
+  authLoading: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (
+    email: string,
+    password: string,
+    name?: string,
+  ) => Promise<{ success: boolean; error?: string }>;
+  signOut: () => Promise<void>;
+
+  // Theme
+  theme: 'dark' | 'light';
+  toggleTheme: () => void;
+
+  // Month navigation
+  selectedMonth: string; // YYYY-MM
+  setSelectedMonth: (month: string) => void;
+  goToPreviousMonth: () => void;
+  goToNextMonth: () => void;
+  goToCurrentMonth: () => void;
+
+  // Data
   categories: Category[];
-  transactions: Transaction[];
-  currency: 'USD' | 'INR';
-}
+  expenses: Expense[];
+  monthlyBudget: number | null;
+  stats: MonthStats;
+  loading: boolean;
+  error: string | null;
 
-interface StoreContextType extends StoreState {
-  setMonthlyBudget: (budget: number) => void;
-  addCategory: (category: Omit<Category, 'id' | 'spent'>) => void;
-  deleteCategory: (id: string) => void;
-  addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
-  editTransaction: (id: string, updates: Partial<Omit<Transaction, 'id'>>) => void;
-  deleteTransaction: (id: string) => void;
-  resetData: () => void;
-  setCurrency: (currency: 'USD' | 'INR') => void;
-  formatCurrency: (amount: number) => string;
+  // Actions
+  setMonthlyBudget: (amount: number | null) => Promise<void>;
+  addCategory: (category: { name: string; limit?: number; color?: string }) => Promise<void>;
+  editCategory: (
+    id: string,
+    updates: { name?: string; limit?: number; color?: string },
+  ) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
+  addExpense: (expense: {
+    categoryId: string;
+    amount: number;
+    date: string;
+    description: string;
+  }) => Promise<void>;
+  editExpense: (
+    id: string,
+    updates: { amount?: number; description?: string; date?: string; categoryId?: string },
+  ) => Promise<void>;
+  deleteExpense: (id: string, deleteSeries?: boolean) => Promise<void>;
+  createEmiSchedule: (params: {
+    categoryId: string;
+    description: string;
+    startDate: string;
+    totalAmount: number;
+    tenure: number;
+    existingExpenseId?: string;
+  }) => Promise<void>;
+  refreshData: () => Promise<void>;
+  formatINR: (amount: number) => string;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_KEY = 'expensi-data-v1';
+export function formatINR(amount: number): string {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0,
+  }).format(isNaN(amount) ? 0 : amount);
+}
 
-const defaultState: StoreState = {
-  monthlyBudget: 0,
-  categories: [],
-  transactions: [],
-  currency: 'USD',
-};
+function getCurrentMonthString(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+}
 
 export const StoreProvider = ({ children }: { children: ReactNode }) => {
-  const [state, setState] = useState<StoreState>(defaultState);
-  const [mounted, setMounted] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
-  // Load from LocalStorage
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [selectedMonth, setSelectedMonthState] = useState<string>(getCurrentMonthString());
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [monthlyBudget, setMonthlyBudgetState] = useState<number | null>(null);
+  const [stats, setStats] = useState<MonthStats>({
+    allTimeTotalSpent: 0,
+    allTimeCount: 0,
+    monthTotalSpent: 0,
+    monthEmiTotal: 0,
+    monthEmiCount: 0,
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Initialize theme
   useEffect(() => {
-    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (stored) {
-        try {
-            const parsed = JSON.parse(stored);
-            // Ensure currency exists if loading from old data
-            if (!parsed.currency) parsed.currency = 'USD';
-            setState(parsed);
-        } catch (e) {
-            console.error("Failed to parse stored data", e);
-        }
-    }
-    setMounted(true);
+    try {
+      const savedTheme = localStorage.getItem('expensi-theme') as 'dark' | 'light' | null;
+      if (savedTheme === 'dark' || savedTheme === 'light') {
+        setTheme(savedTheme);
+        document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+      } else {
+        setTheme('dark');
+        document.documentElement.classList.add('dark');
+      }
+    } catch {}
   }, []);
 
-  // Save to LocalStorage
-  useEffect(() => {
-    if (mounted) {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
-    }
-  }, [state, mounted]);
-
-  const setMonthlyBudget = (budget: number) => {
-    setState(prev => ({ ...prev, monthlyBudget: budget }));
-  };
-
-  const setCurrency = (currency: 'USD' | 'INR') => {
-    setState(prev => ({ ...prev, currency }));
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: state.currency,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const addCategory = (category: Omit<Category, 'id' | 'spent'>) => {
-    const newCategory: Category = {
-      ...category,
-      id: crypto.randomUUID(),
-      spent: 0,
-    };
-    setState(prev => ({ ...prev, categories: [...prev.categories, newCategory] }));
-  };
-
-  const deleteCategory = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      categories: prev.categories.filter(c => c.id !== id),
-      // Optionally delete transactions associated with this category or keep them as 'uncategorized'?
-      // For now, let's keep them but maybe filter them out in UI or warn user.
-      // Better approach: remove transactions for this category to maintain consistency.
-      transactions: prev.transactions.filter(t => t.categoryId !== id)
-    }));
-  };
-
-  const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
-    const newTransaction: Transaction = {
-      ...transaction,
-      id: crypto.randomUUID(),
-    };
-    setState(prev => {
-        // Update category spent amount
-        const updatedCategories = prev.categories.map(cat => {
-            if (cat.id === transaction.categoryId) {
-                return { ...cat, spent: cat.spent + transaction.amount };
-            }
-            return cat;
-        });
-
-        return {
-            ...prev,
-            categories: updatedCategories,
-            transactions: [...prev.transactions, newTransaction]
-        };
+  const toggleTheme = () => {
+    setTheme((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      try {
+        localStorage.setItem('expensi-theme', next);
+        document.documentElement.classList.toggle('dark', next === 'dark');
+      } catch {}
+      return next;
     });
   };
 
-  const editTransaction = (id: string, updates: Partial<Omit<Transaction, 'id'>>) => {
-      setState(prev => {
-          const oldTx = prev.transactions.find(t => t.id === id);
-          if (!oldTx) return prev;
+  // Auth: Check current user session on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        setAuthLoading(true);
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+        } else {
+          setUser(null);
+        }
+      } catch {
+        setUser(null);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    checkAuth();
+  }, []);
 
-          const amountDiff = (updates.amount ?? oldTx.amount) - oldTx.amount;
-
-          const updatedCategories = prev.categories.map(cat => {
-              if (cat.id === oldTx.categoryId) {
-                  return { ...cat, spent: cat.spent + amountDiff };
-              }
-              return cat;
-          });
-
-          const updatedTransactions = prev.transactions.map(t =>
-              t.id === id ? { ...t, ...updates } : t
-          );
-
-          return {
-              ...prev,
-              categories: updatedCategories,
-              transactions: updatedTransactions,
-          };
+  const login = async (email: string, password: string) => {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Login failed' };
+      }
+      setUser(data.user);
+      return { success: true };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Network error during login';
+      return { success: false, error: msg };
+    }
   };
 
-  const deleteTransaction = (id: string) => {
-      setState(prev => {
-          const transaction = prev.transactions.find(t => t.id === id);
-          if (!transaction) return prev;
-
-          const updatedCategories = prev.categories.map(cat => {
-              if (cat.id === transaction.categoryId) {
-                  return { ...cat, spent: cat.spent - transaction.amount };
-              }
-              return cat;
-          });
-
-          return {
-              ...prev,
-              categories: updatedCategories,
-              transactions: prev.transactions.filter(t => t.id !== id)
-          };
+  const register = async (email: string, password: string, name?: string) => {
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name }),
       });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Registration failed' };
+      }
+      setUser(data.user);
+      return { success: true };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Network error during registration';
+      return { success: false, error: msg };
+    }
   };
 
-  const resetData = () => {
-      setState(defaultState);
+  const signOut = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {}
+    setUser(null);
+    setCategories([]);
+    setExpenses([]);
+    setMonthlyBudgetState(null);
+    setStats({
+      allTimeTotalSpent: 0,
+      allTimeCount: 0,
+      monthTotalSpent: 0,
+      monthEmiTotal: 0,
+      monthEmiCount: 0,
+    });
   };
 
-  // Recalculate spent whenever transactions change (safeguard against sync issues)
-  // This is a more robust way than updating 'spent' incrementally, but for performance with many txns, incremental is better.
-  // Given this is local storage and likely < 1000 txns, we could recompute on load.
-  // For now, let's trust the incremental updates but maybe add a 'recalc' effect if needed.
+  // Month navigation helpers
+  const setSelectedMonth = (month: string) => {
+    setSelectedMonthState(month);
+  };
 
-  if (!mounted) {
-      return null; // or a loading spinner
-  }
+  const goToPreviousMonth = () => {
+    setSelectedMonthState((curr) => {
+      const [yStr, mStr] = curr.split('-');
+      const y = parseInt(yStr, 10);
+      const m = parseInt(mStr, 10) - 1;
+      const prevDate = new Date(y, m - 1, 1);
+      const newY = prevDate.getFullYear();
+      const newM = String(prevDate.getMonth() + 1).padStart(2, '0');
+      return `${newY}-${newM}`;
+    });
+  };
+
+  const goToNextMonth = () => {
+    setSelectedMonthState((curr) => {
+      const [yStr, mStr] = curr.split('-');
+      const y = parseInt(yStr, 10);
+      const m = parseInt(mStr, 10) - 1;
+      const nextDate = new Date(y, m + 1, 1);
+      const newY = nextDate.getFullYear();
+      const newM = String(nextDate.getMonth() + 1).padStart(2, '0');
+      return `${newY}-${newM}`;
+    });
+  };
+
+  const goToCurrentMonth = () => {
+    setSelectedMonthState(getCurrentMonthString());
+  };
+
+  // Fetch all user data for the selected month
+  const fetchData = useCallback(
+    async (month: string) => {
+      if (!user) return;
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [catRes, expRes, budgetRes, statsRes] = await Promise.all([
+          fetch(`/api/categories?month=${month}`),
+          fetch(`/api/expenses?month=${month}`),
+          fetch(`/api/budgets?month=${month}`),
+          fetch(`/api/stats?month=${month}`),
+        ]);
+
+        if (catRes.ok) {
+          const catData = await catRes.json();
+          setCategories(catData.categories || []);
+        }
+
+        if (expRes.ok) {
+          const expData = await expRes.json();
+          setExpenses(expData.expenses || []);
+        }
+
+        if (budgetRes.ok) {
+          const budgetData = await budgetRes.json();
+          setMonthlyBudgetState(budgetData.amount ?? null);
+        }
+
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setStats(statsData);
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Failed to connect to database';
+        console.error('Error loading data:', msg);
+        setError(msg);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user],
+  );
+
+  useEffect(() => {
+    if (user) {
+      fetchData(selectedMonth);
+    }
+  }, [user, selectedMonth, fetchData]);
+
+  const refreshData = async () => {
+    await fetchData(selectedMonth);
+  };
+
+  // Actions
+  const setMonthlyBudget = async (amount: number | null) => {
+    if (!user) return;
+    try {
+      setMonthlyBudgetState(amount);
+      await fetch('/api/budgets', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ month: selectedMonth, amount }),
+      });
+      await refreshData();
+    } catch (err) {
+      console.error('Error saving budget:', err);
+    }
+  };
+
+  const addCategory = async (cat: { name: string; limit?: number; color?: string }) => {
+    if (!user) return;
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cat),
+      });
+      if (res.ok) {
+        await refreshData();
+      }
+    } catch (err) {
+      console.error('Error adding category:', err);
+    }
+  };
+
+  const editCategory = async (
+    id: string,
+    updates: { name?: string; limit?: number; color?: string },
+  ) => {
+    if (!user) return;
+    try {
+      const res = await fetch(`/api/categories/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+      if (res.ok) {
+        await refreshData();
+      }
+    } catch (err) {
+      console.error('Error editing category:', err);
+    }
+  };
+
+  const deleteCategory = async (id: string) => {
+    if (!user) return;
+    try {
+      const res = await fetch(`/api/categories/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        await refreshData();
+      }
+    } catch (err) {
+      console.error('Error deleting category:', err);
+    }
+  };
+
+  const addExpense = async (exp: {
+    categoryId: string;
+    amount: number;
+    date: string;
+    description: string;
+  }) => {
+    if (!user) return;
+    try {
+      const res = await fetch('/api/expenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(exp),
+      });
+      if (res.ok) {
+        await refreshData();
+      }
+    } catch (err) {
+      console.error('Error adding expense:', err);
+    }
+  };
+
+  const editExpense = async (
+    id: string,
+    updates: { amount?: number; description?: string; date?: string; categoryId?: string },
+  ) => {
+    if (!user) return;
+    try {
+      const res = await fetch(`/api/expenses/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+      if (res.ok) {
+        await refreshData();
+      }
+    } catch (err) {
+      console.error('Error updating expense:', err);
+    }
+  };
+
+  const deleteExpense = async (id: string, deleteSeries = false) => {
+    if (!user) return;
+    try {
+      const url = `/api/expenses/${id}${deleteSeries ? '?deleteSeries=true' : ''}`;
+      const res = await fetch(url, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        await refreshData();
+      }
+    } catch (err) {
+      console.error('Error deleting expense:', err);
+    }
+  };
+
+  const createEmiSchedule = async (params: {
+    categoryId: string;
+    description: string;
+    startDate: string;
+    totalAmount: number;
+    tenure: number;
+    existingExpenseId?: string;
+  }) => {
+    if (!user) return;
+    try {
+      const res = await fetch('/api/expenses/emi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+      });
+      if (res.ok) {
+        await refreshData();
+      }
+    } catch (err) {
+      console.error('Error creating EMI schedule:', err);
+    }
+  };
 
   return (
-    <StoreContext.Provider value={{
-      ...state,
-      setMonthlyBudget,
-      addCategory,
-      deleteCategory,
-      addTransaction,
-      editTransaction,
-      deleteTransaction,
-      resetData,
-      setCurrency,
-      formatCurrency
-    }}>
+    <StoreContext.Provider
+      value={{
+        user,
+        authLoading,
+        login,
+        register,
+        signOut,
+        theme,
+        toggleTheme,
+        selectedMonth,
+        setSelectedMonth,
+        goToPreviousMonth,
+        goToNextMonth,
+        goToCurrentMonth,
+        categories,
+        expenses,
+        monthlyBudget,
+        stats,
+        loading,
+        error,
+        setMonthlyBudget,
+        addCategory,
+        editCategory,
+        deleteCategory,
+        addExpense,
+        editExpense,
+        deleteExpense,
+        createEmiSchedule,
+        refreshData,
+        formatINR,
+      }}
+    >
       {children}
     </StoreContext.Provider>
   );
