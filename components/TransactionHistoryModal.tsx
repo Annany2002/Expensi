@@ -27,6 +27,7 @@ export default function TransactionHistoryModal({
   const [showAddForm, setShowAddForm] = useState(false);
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'UPI' | 'Card' | 'Cash' | 'NetBanking'>('UPI');
   const [date, setDate] = useState(() => {
     const today = new Date().toISOString().split('T')[0];
     return today.startsWith(selectedMonth) ? today : `${selectedMonth}-01`;
@@ -41,6 +42,7 @@ export default function TransactionHistoryModal({
   const [editAmount, setEditAmount] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editDate, setEditDate] = useState('');
+  const [editPaymentMethod, setEditPaymentMethod] = useState('UPI');
 
   // Convert to EMI modal state
   const [convertingExpense, setConvertingExpense] = useState<Expense | null>(null);
@@ -91,11 +93,13 @@ export default function TransactionHistoryModal({
         amount: parsedAmount,
         date: expenseDate,
         description: description || 'Expense',
+        paymentMethod,
       });
     }
 
     setAmount('');
     setDescription('');
+    setPaymentMethod('UPI');
     setIsEmiMode(false);
     setShowAddForm(false);
   };
@@ -105,6 +109,7 @@ export default function TransactionHistoryModal({
     setEditAmount(exp.amount.toString());
     setEditDescription(exp.description);
     setEditDate(exp.date);
+    setEditPaymentMethod(exp.paymentMethod || 'UPI');
   };
 
   const saveEdit = async () => {
@@ -114,6 +119,7 @@ export default function TransactionHistoryModal({
       amount: parseFloat(editAmount),
       description: editDescription || 'Expense',
       date: editDate,
+      paymentMethod: editPaymentMethod,
     });
 
     setEditingId(null);
@@ -282,6 +288,30 @@ export default function TransactionHistoryModal({
                 />
               </div>
 
+              {!isEmiMode && (
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold tracking-wider text-neutral-500 uppercase">
+                    Payment Method
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {(['UPI', 'Card', 'Cash', 'NetBanking'] as const).map((method) => (
+                      <button
+                        key={method}
+                        type="button"
+                        onClick={() => setPaymentMethod(method)}
+                        className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
+                          paymentMethod === method
+                            ? 'bg-neutral-900 text-white shadow-xs dark:bg-white dark:text-black'
+                            : 'border border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700'
+                        }`}
+                      >
+                        {method}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* EMI Switch */}
               <div className="pt-1">
                 <label className="flex cursor-pointer items-center justify-between rounded-xl border border-neutral-200 bg-white p-2.5 dark:border-neutral-700/80 dark:bg-neutral-900">
@@ -381,12 +411,24 @@ export default function TransactionHistoryModal({
                             placeholder="Amount"
                           />
                         </div>
-                        <input
-                          type="date"
-                          value={editDate}
-                          onChange={(e) => setEditDate(e.target.value)}
-                          className="glass-input py-1.5 text-xs"
-                        />
+                        <div className="flex gap-2">
+                          <input
+                            type="date"
+                            value={editDate}
+                            onChange={(e) => setEditDate(e.target.value)}
+                            className="glass-input flex-1 py-1.5 text-xs"
+                          />
+                          <select
+                            value={editPaymentMethod}
+                            onChange={(e) => setEditPaymentMethod(e.target.value)}
+                            className="glass-input py-1.5 text-xs font-semibold"
+                          >
+                            <option value="UPI">UPI</option>
+                            <option value="Card">Card</option>
+                            <option value="Cash">Cash</option>
+                            <option value="NetBanking">NetBanking</option>
+                          </select>
+                        </div>
                       </div>
                     ) : (
                       /* Display row */
@@ -395,13 +437,17 @@ export default function TransactionHistoryModal({
                           <p className="text-sm font-semibold text-neutral-900 dark:text-white">
                             {exp.description}
                           </p>
-                          {exp.isEmi && (
+                          {exp.isEmi ? (
                             <span className="inline-flex items-center gap-1 rounded-full border border-purple-200 bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-700 dark:border-purple-800 dark:bg-purple-950/80 dark:text-purple-300">
                               <CreditCard size={10} />
                               EMI{' '}
                               {exp.emiDetails
                                 ? `${exp.emiDetails.installmentIndex}/${exp.emiDetails.totalTenure}`
                                 : ''}
+                            </span>
+                          ) : (
+                            <span className="rounded-md border border-neutral-200 bg-neutral-100 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400">
+                              {exp.paymentMethod || 'UPI'}
                             </span>
                           )}
                         </div>

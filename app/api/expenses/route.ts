@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
       date: exp.date,
       month: exp.month,
       description: exp.description,
+      paymentMethod: exp.paymentMethod || 'UPI',
       isEmi: exp.isEmi || false,
       emiDetails: exp.emiDetails || null,
     }));
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
 
     await connectToDatabase();
     const body = await req.json();
-    const { categoryId, amount, date, description } = body;
+    const { categoryId, amount, date, description, paymentMethod } = body;
 
     if (!categoryId || amount === undefined || !date) {
       return NextResponse.json(
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest) {
       date,
       month,
       description: description || 'Expense',
+      paymentMethod: paymentMethod || 'UPI',
       isEmi: false,
     });
 
@@ -79,6 +81,7 @@ export async function POST(req: NextRequest) {
           date: newExpense.date,
           month: newExpense.month,
           description: newExpense.description,
+          paymentMethod: newExpense.paymentMethod || 'UPI',
           isEmi: false,
           emiDetails: null,
         },

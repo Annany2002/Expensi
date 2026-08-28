@@ -15,6 +15,7 @@ export interface IExpense extends Document {
   date: string; // "YYYY-MM-DD"
   month: string; // "YYYY-MM"
   description: string;
+  paymentMethod?: string;
   isEmi: boolean;
   emiDetails?: IEmiDetails;
   createdAt: Date;
@@ -64,6 +65,11 @@ const ExpenseSchema = new Schema<IExpense>(
     description: {
       type: String,
       default: 'Expense',
+      trim: true,
+    },
+    paymentMethod: {
+      type: String,
+      default: 'UPI',
       trim: true,
     },
     isEmi: {

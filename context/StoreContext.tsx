@@ -38,6 +38,7 @@ export interface Expense {
   date: string; // YYYY-MM-DD
   month: string; // YYYY-MM
   description: string;
+  paymentMethod?: string;
   isEmi: boolean;
   emiDetails?: EmiDetails | null;
 }
@@ -94,10 +95,17 @@ interface StoreContextType {
     amount: number;
     date: string;
     description: string;
+    paymentMethod?: string;
   }) => Promise<void>;
   editExpense: (
     id: string,
-    updates: { amount?: number; description?: string; date?: string; categoryId?: string },
+    updates: {
+      amount?: number;
+      description?: string;
+      date?: string;
+      categoryId?: string;
+      paymentMethod?: string;
+    },
   ) => Promise<void>;
   deleteExpense: (id: string, deleteSeries?: boolean) => Promise<void>;
   createEmiSchedule: (params: {
@@ -407,6 +415,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     amount: number;
     date: string;
     description: string;
+    paymentMethod?: string;
   }) => {
     if (!user) return;
     try {
@@ -425,7 +434,13 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   const editExpense = async (
     id: string,
-    updates: { amount?: number; description?: string; date?: string; categoryId?: string },
+    updates: {
+      amount?: number;
+      description?: string;
+      date?: string;
+      categoryId?: string;
+      paymentMethod?: string;
+    },
   ) => {
     if (!user) return;
     try {
