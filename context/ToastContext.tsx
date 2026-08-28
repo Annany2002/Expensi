@@ -112,7 +112,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {children}
 
       {/* Floating Toast Notification Container */}
-      <div className="pointer-events-none fixed top-5 right-5 z-[9999] flex w-full max-w-sm flex-col gap-2.5 px-4 sm:px-0">
+      <div className="pointer-events-none fixed top-5 right-5 z-9999 flex w-full max-w-sm flex-col gap-2.5 px-4 sm:px-0">
         {toasts.map((t) => (
           <div
             key={t.id}
