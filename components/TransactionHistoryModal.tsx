@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useStore, Category, Expense } from '@/context/StoreContext';
+import { useToast } from '@/context/ToastContext';
 import {
   X,
   Trash2,
@@ -15,6 +16,7 @@ import {
   Calendar,
   TrendingDown,
   TrendingUp,
+  Loader2,
 } from 'lucide-react';
 
 interface TransactionHistoryModalProps {
@@ -71,6 +73,7 @@ export default function TransactionHistoryModal({
     createEmiSchedule,
     formatINR,
   } = useStore();
+  const { toast } = useToast();
 
   // Add Expense form state
   const [amount, setAmount] = useState('');
@@ -80,6 +83,12 @@ export default function TransactionHistoryModal({
     const today = new Date().toISOString().split('T')[0];
     return today.startsWith(selectedMonth) ? today : `${selectedMonth}-01`;
   });
+
+  // Async Mutation Loading Spinners
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [isConverting, setIsConverting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Search filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -140,33 +149,48 @@ export default function TransactionHistoryModal({
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsedAmount = parseFloat(amount);
-    if (isNaN(parsedAmount) || parsedAmount <= 0) return;
-
-    const expenseDate = date || `${selectedMonth}-01`;
-
-    if (isEmiMode) {
-      const parsedTenure = parseInt(tenure, 10);
-      await createEmiSchedule({
-        categoryId: category.id,
-        description: description || 'EMI Purchase',
-        startDate: expenseDate,
-        totalAmount: parsedAmount,
-        tenure: parsedTenure,
-      });
-    } else {
-      await addExpense({
-        categoryId: category.id,
-        amount: parsedAmount,
-        date: expenseDate,
-        description: description || 'Expense',
-        paymentMethod,
-      });
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      toast.warning('Please enter a valid expense amount');
+      return;
     }
 
-    setAmount('');
-    setDescription('');
-    setPaymentMethod('UPI');
-    setIsEmiMode(false);
+    const expenseDate = date || `${selectedMonth}-01`;
+    setIsSubmitting(true);
+
+    try {
+      if (isEmiMode) {
+        const parsedTenure = parseInt(tenure, 10);
+        await createEmiSchedule({
+          categoryId: category.id,
+          description: description || 'EMI Purchase',
+          startDate: expenseDate,
+          totalAmount: parsedAmount,
+          tenure: parsedTenure,
+        });
+        toast.success(
+          'EMI Plan Created',
+          `${formatINR(parsedAmount)} split across ${parsedTenure} months`,
+        );
+      } else {
+        await addExpense({
+          categoryId: category.id,
+          amount: parsedAmount,
+          date: expenseDate,
+          description: description || 'Expense',
+          paymentMethod,
+        });
+        toast.success('Expense Added', `${formatINR(parsedAmount)} added to ${category.name}`);
+      }
+
+      setAmount('');
+      setDescription('');
+      setPaymentMethod('UPI');
+      setIsEmiMode(false);
+    } catch {
+      toast.error('Failed to add transaction');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const startEditing = (exp: Expense) => {
@@ -179,34 +203,62 @@ export default function TransactionHistoryModal({
 
   const saveEdit = async () => {
     if (!editingId || !editAmount) return;
+    setIsSavingEdit(true);
 
-    await editExpense(editingId, {
-      amount: parseFloat(editAmount),
-      description: editDescription || 'Expense',
-      date: editDate,
-      paymentMethod: editPaymentMethod,
-    });
+    try {
+      await editExpense(editingId, {
+        amount: parseFloat(editAmount),
+        description: editDescription || 'Expense',
+        date: editDate,
+        paymentMethod: editPaymentMethod,
+      });
 
-    setEditingId(null);
-    setEditAmount('');
-    setEditDescription('');
-    setEditDate('');
+      toast.success('Expense Updated');
+      setEditingId(null);
+      setEditAmount('');
+      setEditDescription('');
+      setEditDate('');
+    } catch {
+      toast.error('Failed to update expense');
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
+  const handleDeleteExpense = async (id: string) => {
+    setDeletingId(id);
+    try {
+      await deleteExpense(id);
+      toast.success('Expense Deleted');
+    } catch {
+      toast.error('Failed to delete expense');
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const handleConvertSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!convertingExpense) return;
+    setIsConverting(true);
 
-    await createEmiSchedule({
-      categoryId: category.id,
-      description: convertingExpense.description,
-      startDate: convertingExpense.date,
-      totalAmount: convertingExpense.amount,
-      tenure: parseInt(convertTenure, 10),
-      existingExpenseId: convertingExpense.id,
-    });
+    try {
+      await createEmiSchedule({
+        categoryId: category.id,
+        description: convertingExpense.description,
+        startDate: convertingExpense.date,
+        totalAmount: convertingExpense.amount,
+        tenure: parseInt(convertTenure, 10),
+        existingExpenseId: convertingExpense.id,
+      });
 
-    setConvertingExpense(null);
+      toast.success('Converted to EMI Schedule');
+      setConvertingExpense(null);
+    } catch {
+      toast.error('Failed to convert to EMI');
+    } finally {
+      setIsConverting(false);
+    }
   };
 
   const hasLimit = category.limit > 0;
@@ -225,13 +277,13 @@ export default function TransactionHistoryModal({
   const monthlyAddEmi = Math.round(parsedAddAmount / parsedAddTenure);
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-md duration-150 md:p-6 dark:bg-black/85">
+    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-xl duration-150 md:p-6 dark:bg-black/90">
       {/* Rectangular Widescreen Dialog Container */}
-      <div className="relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-neutral-200/90 bg-white shadow-2xl transition-all dark:border-neutral-800/90 dark:bg-neutral-900">
+      <div className="glass-panel relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl shadow-2xl transition-all">
         {/* 2-Column Rectangular Content Grid */}
         <div className="grid h-full flex-1 grid-cols-1 overflow-hidden lg:grid-cols-12">
           {/* Left Column: Category Intelligence & Add Expense Form (5 cols) */}
-          <div className="flex flex-col justify-between overflow-y-auto border-b border-neutral-200/80 bg-neutral-50/70 p-6 lg:col-span-5 lg:border-r lg:border-b-0 dark:border-neutral-800/80 dark:bg-neutral-900/60">
+          <div className="flex flex-col justify-between overflow-y-auto border-b border-slate-200/80 bg-slate-50/70 p-6 lg:col-span-5 lg:border-r lg:border-b-0 dark:border-slate-800/80 dark:bg-slate-900/60">
             <div className="space-y-5">
               {/* Category Header */}
               <div className="flex items-center gap-3">
@@ -457,48 +509,58 @@ export default function TransactionHistoryModal({
 
                 <button
                   type="submit"
-                  className="btn-primary flex w-full items-center justify-center gap-1.5 py-2 text-xs font-bold"
+                  disabled={isSubmitting}
+                  className="btn-primary flex w-full items-center justify-center gap-1.5 py-2 text-xs font-bold disabled:opacity-60"
                 >
-                  <Plus size={13} />
-                  <span>{isEmiMode ? 'Schedule EMI' : 'Save Expense'}</span>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={13} className="animate-spin" />
+                      <span>{isEmiMode ? 'Scheduling EMI...' : 'Saving...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={13} />
+                      <span>{isEmiMode ? 'Schedule EMI' : 'Save Expense'}</span>
+                    </>
+                  )}
                 </button>
               </form>
             </div>
           </div>
 
-          {/* Right Column: Complete Transactions Ledger (7 cols) */}
+          {/* Right Column: Interactive Transactions Feed & Quick Search (7 cols) */}
           <div className="flex flex-col justify-between overflow-hidden p-6 lg:col-span-7">
-            {/* Header & Live Search */}
-            <div className="mb-4 flex items-center justify-between gap-3">
+            {/* Header with Search and Inline Close Button */}
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h3 className="text-base font-black tracking-tight text-neutral-900 dark:text-white">
-                  Transactions Ledger
+                <h3 className="text-sm font-black tracking-tight text-slate-900 dark:text-white">
+                  Transactions Feed
                 </h3>
-                <p className="text-xs font-medium text-neutral-500">
-                  {filteredExpenses.length} of {categoryExpenses.length} entries shown
+                <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                  {filteredExpenses.length} of {categoryExpenses.length} entries for {monthTitle}
                 </p>
               </div>
 
+              {/* Search Bar & Close Button grouped inline */}
               <div className="flex items-center gap-2">
-                {/* Fast Search input */}
-                <div className="relative w-44 sm:w-56">
+                <div className="relative flex-1 sm:w-56">
                   <Search
                     size={13}
-                    className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-neutral-400"
+                    className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-slate-400"
                   />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Filter entries..."
-                    className="glass-input w-full py-1.5 pr-2.5 pl-7! text-xs font-medium"
+                    placeholder="Search transactions..."
+                    className="glass-input w-full py-1.5 pr-2.5 pl-7.5! text-xs font-medium"
                   />
                 </div>
 
-                {/* Close Button cleanly aligned inline */}
                 <button
+                  type="button"
                   onClick={onClose}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-500 transition-colors hover:bg-neutral-200 hover:text-neutral-900 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-white"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-900 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
                   title="Close Modal"
                 >
                   <X size={16} />
@@ -509,8 +571,8 @@ export default function TransactionHistoryModal({
             {/* Scrollable Transactions Feed */}
             <div className="flex-1 space-y-2 overflow-y-auto pr-1">
               {filteredExpenses.length === 0 ? (
-                <div className="flex h-64 flex-col items-center justify-center rounded-xl border border-dashed border-neutral-200 p-8 text-center dark:border-neutral-800">
-                  <p className="text-xs font-semibold text-neutral-500">
+                <div className="flex h-64 flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 p-8 text-center dark:border-slate-800">
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                     {searchQuery
                       ? 'No matching transactions found.'
                       : 'No expenses recorded in this category yet.'}
@@ -525,7 +587,7 @@ export default function TransactionHistoryModal({
                   return (
                     <div
                       key={exp.id}
-                      className="group flex items-center justify-between rounded-xl border border-neutral-200/80 bg-neutral-50/50 p-3 shadow-2xs transition-all hover:border-neutral-300 hover:bg-white dark:border-neutral-800 dark:bg-neutral-800/40 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/80"
+                      className="group flex items-center justify-between rounded-xl border border-slate-200/80 bg-slate-50/50 p-3 shadow-2xs transition-all hover:border-slate-300 hover:bg-white dark:border-slate-800 dark:bg-slate-800/40 dark:hover:border-slate-700 dark:hover:bg-slate-800/80"
                     >
                       {isEditing ? (
                         /* Inline Edit Row */
@@ -570,7 +632,7 @@ export default function TransactionHistoryModal({
                         <div className="flex items-center gap-3">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
-                              <p className="text-xs font-bold text-neutral-900 dark:text-white">
+                              <p className="text-xs font-bold text-slate-900 dark:text-white">
                                 {exp.description}
                               </p>
                               {exp.isEmi ? (
@@ -589,7 +651,7 @@ export default function TransactionHistoryModal({
                                 </span>
                               )}
                             </div>
-                            <p className="flex items-center gap-1 text-[11px] font-medium text-neutral-400">
+                            <p className="flex items-center gap-1 text-[11px] font-medium text-slate-400">
                               <Calendar size={10} />
                               <span>{formatDate(exp.date)}</span>
                             </p>
@@ -603,14 +665,19 @@ export default function TransactionHistoryModal({
                           <div className="flex items-center gap-1">
                             <button
                               onClick={saveEdit}
-                              className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600 text-white hover:bg-emerald-500"
+                              disabled={isSavingEdit}
+                              className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-60"
                               title="Save"
                             >
-                              <Check size={13} />
+                              {isSavingEdit ? (
+                                <Loader2 size={13} className="animate-spin" />
+                              ) : (
+                                <Check size={13} />
+                              )}
                             </button>
                             <button
                               onClick={() => setEditingId(null)}
-                              className="flex h-7 w-7 items-center justify-center rounded-lg bg-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200"
+                              className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200"
                               title="Cancel"
                             >
                               <X size={13} />
@@ -618,16 +685,16 @@ export default function TransactionHistoryModal({
                           </div>
                         ) : (
                           <div className="flex items-center gap-3">
-                            <span className="font-mono text-sm font-black text-neutral-900 dark:text-white">
+                            <span className="font-mono text-sm font-black text-slate-900 dark:text-white">
                               {formatINR(exp.amount)}
                             </span>
 
                             {/* Floating Action Pill on Hover */}
-                            <div className="flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-1.5 py-1 opacity-0 shadow-2xs transition-opacity group-hover:opacity-100 dark:border-neutral-700 dark:bg-neutral-800">
+                            <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-1.5 py-1 opacity-0 shadow-2xs transition-opacity group-hover:opacity-100 dark:border-slate-700 dark:bg-slate-800">
                               {!exp.isEmi && (
                                 <button
                                   onClick={() => setConvertingExpense(exp)}
-                                  className="rounded-md p-1 text-neutral-400 transition-colors hover:bg-purple-100 hover:text-purple-700 dark:hover:bg-purple-950 dark:hover:text-purple-300"
+                                  className="rounded-md p-1 text-slate-400 transition-colors hover:bg-purple-100 hover:text-purple-700 dark:hover:bg-purple-950 dark:hover:text-purple-300"
                                   title="Convert to EMI"
                                 >
                                   <Layers size={13} />
@@ -635,7 +702,7 @@ export default function TransactionHistoryModal({
                               )}
                               <button
                                 onClick={() => startEditing(exp)}
-                                className="rounded-md p-1 text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-900 dark:hover:bg-neutral-700 dark:hover:text-white"
+                                className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-900 dark:hover:bg-slate-700 dark:hover:text-white"
                                 title="Edit Expense"
                               >
                                 <Pencil size={13} />
@@ -645,13 +712,18 @@ export default function TransactionHistoryModal({
                                   if (exp.isEmi) {
                                     setDeletingEmiExpense(exp);
                                   } else {
-                                    deleteExpense(exp.id);
+                                    handleDeleteExpense(exp.id);
                                   }
                                 }}
-                                className="rounded-md p-1 text-neutral-400 transition-colors hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-950 dark:hover:text-rose-400"
+                                disabled={deletingId === exp.id}
+                                className="rounded-md p-1 text-slate-400 transition-colors hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-950 dark:hover:text-rose-400"
                                 title="Delete Expense"
                               >
-                                <Trash2 size={13} />
+                                {deletingId === exp.id ? (
+                                  <Loader2 size={13} className="animate-spin text-rose-500" />
+                                ) : (
+                                  <Trash2 size={13} />
+                                )}
                               </button>
                             </div>
                           </div>
@@ -669,23 +741,23 @@ export default function TransactionHistoryModal({
       {/* Convert Expense to EMI Modal */}
       {convertingExpense && (
         <div className="animate-in fade-in fixed inset-0 z-60 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md">
-          <div className="w-full max-w-sm space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
+          <div className="glass-panel w-full max-w-sm space-y-4 rounded-3xl p-6 shadow-2xl">
             <div className="flex items-center justify-between">
-              <h3 className="flex items-center gap-2 text-base font-bold text-neutral-900 dark:text-white">
+              <h3 className="flex items-center gap-2 text-base font-bold text-slate-900 dark:text-white">
                 <CreditCard size={18} className="text-purple-500" />
                 Convert to EMI Schedule
               </h3>
               <button
                 onClick={() => setConvertingExpense(null)}
-                className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
+                className="text-slate-400 hover:text-slate-900 dark:hover:text-white"
               >
                 <X size={16} />
               </button>
             </div>
 
-            <p className="text-xs text-neutral-600 dark:text-neutral-400">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               Convert{' '}
-              <span className="font-semibold text-neutral-900 dark:text-white">
+              <span className="font-semibold text-slate-900 dark:text-white">
                 &quot;{convertingExpense.description}&quot;
               </span>{' '}
               ({formatINR(convertingExpense.amount)}) into recurring monthly EMI installments across
@@ -694,7 +766,7 @@ export default function TransactionHistoryModal({
 
             <form onSubmit={handleConvertSubmit} className="space-y-4">
               <div>
-                <label className="mb-1.5 block text-xs font-semibold tracking-wider text-neutral-500 uppercase">
+                <label className="mb-1.5 block text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400">
                   Tenure (Months)
                 </label>
                 <select
@@ -734,8 +806,19 @@ export default function TransactionHistoryModal({
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn-primary w-1/2 text-xs font-bold">
-                  Confirm Schedule
+                <button
+                  type="submit"
+                  disabled={isConverting}
+                  className="btn-primary flex w-1/2 items-center justify-center gap-1.5 text-xs font-bold disabled:opacity-60"
+                >
+                  {isConverting ? (
+                    <>
+                      <Loader2 size={13} className="animate-spin" />
+                      <span>Converting...</span>
+                    </>
+                  ) : (
+                    'Confirm Schedule'
+                  )}
                 </button>
               </div>
             </form>
