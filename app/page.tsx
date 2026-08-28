@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useStore, Expense } from '@/context/StoreContext';
 import CategoryCard from '@/components/CategoryCard';
 import AddCategoryModal from '@/components/AddCategoryModal';
@@ -33,6 +34,7 @@ import {
   AlertTriangle,
   WalletCards,
   ArrowUpRight,
+  BarChart3,
 } from 'lucide-react';
 
 function Skeleton({ className }: { className?: string }) {
@@ -263,6 +265,16 @@ export default function Home() {
               ⌘K
             </kbd>
           </button>
+
+          {/* Dedicated All-Time Analytics Page Button */}
+          <Link
+            href="/analytics"
+            className="flex h-10 items-center gap-1.5 rounded-2xl border border-neutral-200/90 bg-white px-3.5 text-xs font-bold text-neutral-800 shadow-2xs transition-all hover:border-neutral-300 hover:bg-neutral-50 hover:text-neutral-950 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:border-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-white"
+            title="Open Dedicated All-Time Analytics Page"
+          >
+            <BarChart3 size={14} className="text-blue-500" />
+            <span>Analytics</span>
+          </Link>
 
           {/* Month Navigator Group */}
           <div className="flex h-10 items-center rounded-2xl border border-neutral-200/90 bg-neutral-50/80 p-1 dark:border-neutral-800 dark:bg-neutral-800/60">
