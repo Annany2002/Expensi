@@ -390,7 +390,7 @@ export default function Home() {
                           }`}
                         >
                           <span>{label}</span>
-                          {isSelected && <Check size={14} className="stroke-[3]" />}
+                          {isSelected && <Check size={14} className="stroke-3" />}
                         </button>
                       );
                     })}
