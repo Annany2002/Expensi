@@ -228,15 +228,6 @@ export default function TransactionHistoryModal({
     <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-md duration-150 md:p-6 dark:bg-black/85">
       {/* Rectangular Widescreen Dialog Container */}
       <div className="relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-neutral-200/90 bg-white shadow-2xl transition-all dark:border-neutral-800/90 dark:bg-neutral-900">
-        {/* Top Floating Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-20 flex h-8 w-8 items-center justify-center rounded-xl bg-neutral-100 text-neutral-500 transition-colors hover:bg-neutral-200 hover:text-neutral-900 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-white"
-          title="Close"
-        >
-          <X size={16} />
-        </button>
-
         {/* 2-Column Rectangular Content Grid */}
         <div className="grid h-full flex-1 grid-cols-1 overflow-hidden lg:grid-cols-12">
           {/* Left Column: Category Intelligence & Add Expense Form (5 cols) */}
@@ -478,7 +469,7 @@ export default function TransactionHistoryModal({
           {/* Right Column: Complete Transactions Ledger (7 cols) */}
           <div className="flex flex-col justify-between overflow-hidden p-6 lg:col-span-7">
             {/* Header & Live Search */}
-            <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+            <div className="mb-4 flex items-center justify-between gap-3">
               <div>
                 <h3 className="text-base font-black tracking-tight text-neutral-900 dark:text-white">
                   Transactions Ledger
@@ -488,19 +479,30 @@ export default function TransactionHistoryModal({
                 </p>
               </div>
 
-              {/* Fast Search input */}
-              <div className="relative w-full sm:w-56">
-                <Search
-                  size={13}
-                  className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-neutral-400"
-                />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Filter by description, amount..."
-                  className="glass-input w-full py-1.5 pr-2.5 pl-7! text-xs font-medium"
-                />
+              <div className="flex items-center gap-2">
+                {/* Fast Search input */}
+                <div className="relative w-44 sm:w-56">
+                  <Search
+                    size={13}
+                    className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-neutral-400"
+                  />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Filter entries..."
+                    className="glass-input w-full py-1.5 pr-2.5 pl-7! text-xs font-medium"
+                  />
+                </div>
+
+                {/* Close Button cleanly aligned inline */}
+                <button
+                  onClick={onClose}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-500 transition-colors hover:bg-neutral-200 hover:text-neutral-900 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-white"
+                  title="Close Modal"
+                >
+                  <X size={16} />
+                </button>
               </div>
             </div>
 
