@@ -44,6 +44,14 @@ export interface Expense {
   emiDetails?: EmiDetails | null;
 }
 
+export interface PreviousMonthSurplus {
+  month: string;
+  monthName: string;
+  budget: number | null;
+  spent: number;
+  surplus: number;
+}
+
 export interface MonthStats {
   allTimeTotalSpent: number;
   allTimeCount: number;
@@ -82,6 +90,12 @@ interface StoreContextType {
   expenses: Expense[];
   allExpenses: Expense[];
   monthlyBudget: number | null;
+  effectiveBudget: number | null;
+  enableRollover: boolean;
+  toggleRollover: () => void;
+  rolloverSurplus: number;
+  previousMonthSurplus: PreviousMonthSurplus | null;
+  allBudgets: Record<string, number | null>;
   stats: MonthStats;
   loading: boolean;
   error: string | null;
@@ -152,6 +166,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [allExpenses, setAllExpenses] = useState<Expense[]>([]);
   const [monthlyBudget, setMonthlyBudgetState] = useState<number | null>(null);
+  const [allBudgets, setAllBudgets] = useState<Record<string, number | null>>({});
+  const [enableRollover, setEnableRollover] = useState<boolean>(true);
   const [stats, setStats] = useState<MonthStats>({
     allTimeTotalSpent: 0,
     allTimeCount: 0,
@@ -163,7 +179,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize theme
+  // Initialize theme & rollover settings
   useEffect(() => {
     try {
       const savedTheme = localStorage.getItem('expensi-theme') as 'dark' | 'light' | null;
@@ -174,6 +190,11 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         setTheme('dark');
         document.documentElement.classList.add('dark');
       }
+
+      const savedRollover = localStorage.getItem('expensi-enable-rollover');
+      if (savedRollover !== null) {
+        setEnableRollover(savedRollover === 'true');
+      }
     } catch {}
   }, []);
 
@@ -183,6 +204,16 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       try {
         localStorage.setItem('expensi-theme', next);
         document.documentElement.classList.toggle('dark', next === 'dark');
+      } catch {}
+      return next;
+    });
+  };
+
+  const toggleRollover = () => {
+    setEnableRollover((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('expensi-enable-rollover', String(next));
       } catch {}
       return next;
     });
@@ -257,6 +288,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     setExpenses([]);
     setAllExpenses([]);
     setMonthlyBudgetState(null);
+    setAllBudgets({});
     setStats({
       allTimeTotalSpent: 0,
       allTimeCount: 0,
@@ -308,14 +340,16 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         setLoading(true);
         setError(null);
 
-        const [catRes, allCatRes, expRes, allExpRes, budgetRes, statsRes] = await Promise.all([
-          fetch(`/api/categories?month=${month}`),
-          fetch('/api/categories'),
-          fetch(`/api/expenses?month=${month}`),
-          fetch('/api/expenses'),
-          fetch(`/api/budgets?month=${month}`),
-          fetch(`/api/stats?month=${month}`),
-        ]);
+        const [catRes, allCatRes, expRes, allExpRes, budgetRes, allBudgetsRes, statsRes] =
+          await Promise.all([
+            fetch(`/api/categories?month=${month}`),
+            fetch('/api/categories'),
+            fetch(`/api/expenses?month=${month}`),
+            fetch('/api/expenses'),
+            fetch(`/api/budgets?month=${month}`),
+            fetch('/api/budgets'),
+            fetch(`/api/stats?month=${month}`),
+          ]);
 
         if (catRes.ok) {
           const catData = await catRes.json();
@@ -340,6 +374,15 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         if (budgetRes.ok) {
           const budgetData = await budgetRes.json();
           setMonthlyBudgetState(budgetData.amount ?? null);
+        }
+
+        if (allBudgetsRes.ok) {
+          const allBudgetsData = await allBudgetsRes.json();
+          const budgetMap: Record<string, number | null> = {};
+          (allBudgetsData.budgets || []).forEach((b: { month: string; amount: number | null }) => {
+            budgetMap[b.month] = b.amount;
+          });
+          setAllBudgets(budgetMap);
         }
 
         if (statsRes.ok) {
@@ -517,6 +560,55 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const getPreviousMonthString = (m: string) => {
+    const [yStr, mStr] = m.split('-');
+    const y = parseInt(yStr, 10);
+    const mon = parseInt(mStr, 10);
+    const prevDate = new Date(y, mon - 2, 1);
+    const prevY = prevDate.getFullYear();
+    const prevM = String(prevDate.getMonth() + 1).padStart(2, '0');
+    return `${prevY}-${prevM}`;
+  };
+
+  const previousMonthSurplus: PreviousMonthSurplus | null = React.useMemo(() => {
+    const prevMonthStr = getPreviousMonthString(selectedMonth);
+    const [py, pm] = prevMonthStr.split('-').map(Number);
+    const pDate = new Date(py, pm - 1, 1);
+    const monthName = pDate.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+
+    const prevBudget = allBudgets[prevMonthStr] ?? null;
+    const prevExpensesTotal = allExpenses
+      .filter((e) => e.month === prevMonthStr)
+      .reduce((sum, e) => sum + e.amount, 0);
+
+    if (prevBudget === null || prevBudget <= 0) {
+      return {
+        month: prevMonthStr,
+        monthName,
+        budget: null,
+        spent: prevExpensesTotal,
+        surplus: 0,
+      };
+    }
+
+    const surplus = Math.max(0, prevBudget - prevExpensesTotal);
+    return {
+      month: prevMonthStr,
+      monthName,
+      budget: prevBudget,
+      spent: prevExpensesTotal,
+      surplus,
+    };
+  }, [selectedMonth, allBudgets, allExpenses]);
+
+  const rolloverSurplus = enableRollover && previousMonthSurplus ? previousMonthSurplus.surplus : 0;
+
+  const effectiveBudget = React.useMemo(() => {
+    const base = monthlyBudget;
+    if (base === null && rolloverSurplus === 0) return null;
+    return (base || 0) + rolloverSurplus;
+  }, [monthlyBudget, rolloverSurplus]);
+
   return (
     <StoreContext.Provider
       value={{
@@ -537,6 +629,12 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         expenses,
         allExpenses,
         monthlyBudget,
+        effectiveBudget,
+        enableRollover,
+        toggleRollover,
+        rolloverSurplus,
+        previousMonthSurplus,
+        allBudgets,
         stats,
         loading,
         error,
