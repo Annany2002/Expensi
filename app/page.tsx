@@ -6,9 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useStore, Expense } from '@/context/StoreContext';
 import { useToast } from '@/context/ToastContext';
-import CategoryCard from '@/components/CategoryCard';
-import AddCategoryModal from '@/components/AddCategoryModal';
-import TransactionHistoryModal from '@/components/TransactionHistoryModal';
+import CategoryHubModal from '@/components/CategoryHubModal';
 import MonthPickerModal from '@/components/MonthPickerModal';
 import SpendingAnalyticsCharts from '@/components/SpendingAnalyticsCharts';
 import GlobalSearchModal from '@/components/GlobalSearchModal';
@@ -97,7 +95,8 @@ export default function Home() {
   } = useStore();
 
   const { toast } = useToast();
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [isCategoryHubOpen, setIsCategoryHubOpen] = useState(false);
+  const [hubInitialCategoryId, setHubInitialCategoryId] = useState<string | null>(null);
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false);
@@ -105,7 +104,6 @@ export default function Home() {
   const [isEditingBudget, setIsEditingBudget] = useState(false);
   const [isSavingBudget, setIsSavingBudget] = useState(false);
   const [newBudget, setNewBudget] = useState('');
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
   // Available recorded months list for 1-click switching
   const availableRecordedMonths = useMemo(() => {
@@ -114,11 +112,6 @@ export default function Home() {
     set.add(selectedMonth);
     return Array.from(set).sort().reverse();
   }, [stats.recordedMonths, expenses, selectedMonth]);
-
-  // Derive selectedCategory directly from state
-  const selectedCategory = selectedCategoryId
-    ? categories.find((c) => c.id === selectedCategoryId) || null
-    : null;
 
   // Keyboard shortcut: Cmd+K / Ctrl+K for Global Search
   useEffect(() => {
@@ -263,7 +256,8 @@ export default function Home() {
     if (exp.month !== selectedMonth) {
       setSelectedMonth(exp.month);
     }
-    setSelectedCategoryId(exp.categoryId);
+    setHubInitialCategoryId(exp.categoryId);
+    setIsCategoryHubOpen(true);
   };
 
   const handleExportMonthCSV = () => {
@@ -731,6 +725,74 @@ export default function Home() {
               </div>
             )}
           </div>
+
+          {/* Quick Categories Bar inside Hero Month Card */}
+          <div className="mt-4 border-t border-slate-200/80 pt-3.5 dark:border-slate-800/80">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
+                Categories Breakdown ({categories.length})
+              </span>
+              <button
+                onClick={() => {
+                  setHubInitialCategoryId(categories[0]?.id || null);
+                  setIsCategoryHubOpen(true);
+                }}
+                className="flex items-center gap-1 text-xs font-bold text-indigo-600 transition-colors hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
+              >
+                <span>View Details & Manage</span>
+                <ArrowUpRight size={13} />
+              </button>
+            </div>
+
+            {/* Interactive Category Mini-Chips */}
+            <div className="mt-2.5 flex flex-wrap items-center gap-2">
+              {categories.length === 0 ? (
+                <button
+                  onClick={() => {
+                    setHubInitialCategoryId(null);
+                    setIsCategoryHubOpen(true);
+                  }}
+                  className="flex items-center gap-1 rounded-xl border border-dashed border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-500 hover:border-indigo-500 hover:text-indigo-600 dark:border-slate-700 dark:text-slate-400 dark:hover:border-indigo-400 dark:hover:text-indigo-300"
+                >
+                  <Plus size={13} />
+                  <span>Create First Category</span>
+                </button>
+              ) : (
+                <>
+                  {categories.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => {
+                        setHubInitialCategoryId(c.id);
+                        setIsCategoryHubOpen(true);
+                      }}
+                      className="group flex items-center gap-2 rounded-xl border border-slate-200/90 bg-white/70 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs backdrop-blur-md transition-all hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white"
+                      title={`Click to view ${c.name} transactions & details`}
+                    >
+                      <span
+                        className="h-2 w-2 shrink-0 rounded-full shadow-2xs"
+                        style={{ backgroundColor: c.color || '#3b82f6' }}
+                      />
+                      <span>{c.name}:</span>
+                      <span className="font-extrabold text-slate-900 dark:text-white">
+                        {formatINR(c.spent)}
+                      </span>
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => {
+                      setHubInitialCategoryId(null);
+                      setIsCategoryHubOpen(true);
+                    }}
+                    className="flex items-center gap-1 rounded-xl border border-slate-200/80 bg-white/50 p-1.5 text-slate-500 hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-700/80 dark:bg-slate-800/40 dark:text-slate-400 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white"
+                    title="Add Category"
+                  >
+                    <Plus size={14} />
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Secondary Column: All-Time Spent & Active EMIs / Daily Pace (4 cols) */}
@@ -815,51 +877,11 @@ export default function Home() {
         <SpendingAnalyticsCharts currentMonth={selectedMonth} />
       </section>
 
-      {/* Categories Section */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-extrabold tracking-wider text-neutral-500 uppercase">
-              Categories ({categories.length})
-            </h2>
-          </div>
-          <button
-            onClick={() => setIsCategoryModalOpen(true)}
-            className="flex items-center gap-1.5 rounded-2xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-slate-900/10 transition-all hover:bg-slate-800 hover:shadow-lg active:scale-95 dark:bg-indigo-600 dark:shadow-indigo-600/25 dark:hover:bg-indigo-500"
-          >
-            <Plus size={14} /> Add Category
-          </button>
-        </div>
-
-        {categories.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-neutral-300 bg-white/50 p-12 text-center dark:border-neutral-800 dark:bg-neutral-900/30">
-            <p className="mb-4 text-sm text-neutral-500">No categories created yet.</p>
-            <button onClick={() => setIsCategoryModalOpen(true)} className="btn-primary text-xs">
-              Create Your First Category
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {categories.map((category) => (
-              <CategoryCard
-                key={category.id}
-                category={category}
-                onViewTransactions={() => setSelectedCategoryId(category.id)}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
       {/* Modals */}
-      <AddCategoryModal
-        isOpen={isCategoryModalOpen}
-        onClose={() => setIsCategoryModalOpen(false)}
-      />
-      <TransactionHistoryModal
-        isOpen={!!selectedCategory}
-        onClose={() => setSelectedCategoryId(null)}
-        category={selectedCategory}
+      <CategoryHubModal
+        isOpen={isCategoryHubOpen}
+        onClose={() => setIsCategoryHubOpen(false)}
+        initialCategoryId={hubInitialCategoryId}
       />
       <MonthPickerModal
         isOpen={isMonthPickerOpen}
