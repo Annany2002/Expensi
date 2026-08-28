@@ -282,7 +282,7 @@ export default function Home() {
   return (
     <main className="mx-auto min-h-screen w-full max-w-400 space-y-6 px-4 py-4 text-slate-900 md:px-8 md:py-6 lg:px-10 dark:text-white">
       {/* Top Navbar Glass Toolbar */}
-      <header className="glass-panel flex flex-col justify-between gap-4 rounded-3xl p-4 shadow-xl sm:flex-row sm:items-center">
+      <header className="glass-panel relative z-30 flex flex-col justify-between gap-4 rounded-3xl p-4 shadow-xl sm:flex-row sm:items-center">
         {/* Brand & Subtitle */}
         <div className="flex items-center gap-3">
           <Image
@@ -346,7 +346,6 @@ export default function Home() {
             <button
               onClick={() => setIsMonthDropdownOpen(!isMonthDropdownOpen)}
               className="flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold text-slate-900 transition-all hover:bg-white hover:shadow-2xs dark:text-white dark:hover:bg-slate-700"
-              title="Select Month"
             >
               <Calendar size={13} className="text-indigo-500" />
               <span>{monthTitle}</span>
@@ -363,49 +362,54 @@ export default function Home() {
 
             {/* Quick Month Select Dropdown Menu */}
             {isMonthDropdownOpen && (
-              <div className="glass-panel animate-in fade-in absolute top-12 left-0 z-40 w-56 space-y-1 rounded-2xl p-2 shadow-2xl backdrop-blur-2xl">
-                <p className="px-2.5 py-1 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-                  Jump to Recorded Month
-                </p>
-                {availableRecordedMonths.map((m) => {
-                  const [y, mon] = m.split('-').map(Number);
-                  const label = new Date(y, mon - 1, 1).toLocaleDateString('en-IN', {
-                    month: 'long',
-                    year: 'numeric',
-                  });
-                  const isSelected = m === selectedMonth;
-                  return (
-                    <button
-                      key={m}
-                      onClick={() => {
-                        setSelectedMonth(m);
-                        setIsMonthDropdownOpen(false);
-                      }}
-                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold transition-all ${
-                        isSelected
-                          ? 'bg-indigo-600 text-white shadow-xs'
-                          : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
-                      }`}
-                    >
-                      <span>{label}</span>
-                      {isSelected && <Check size={13} />}
-                    </button>
-                  );
-                })}
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsMonthDropdownOpen(false)} />
+                <div className="glass-dropdown animate-in fade-in zoom-in-95 absolute top-12 left-0 z-50 w-60 space-y-1 rounded-2xl border border-slate-200 bg-white p-2.5 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+                  <p className="px-2.5 py-1 text-[10px] font-extrabold tracking-wider text-slate-400 uppercase dark:text-slate-500">
+                    Jump to Recorded Month
+                  </p>
+                  <div className="custom-scrollbar max-h-56 space-y-0.5 overflow-y-auto">
+                    {availableRecordedMonths.map((m) => {
+                      const [y, mon] = m.split('-').map(Number);
+                      const label = new Date(y, mon - 1, 1).toLocaleDateString('en-IN', {
+                        month: 'long',
+                        year: 'numeric',
+                      });
+                      const isSelected = m === selectedMonth;
+                      return (
+                        <button
+                          key={m}
+                          onClick={() => {
+                            setSelectedMonth(m);
+                            setIsMonthDropdownOpen(false);
+                          }}
+                          className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-bold transition-all ${
+                            isSelected
+                              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                              : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/90 dark:hover:text-white'
+                          }`}
+                        >
+                          <span>{label}</span>
+                          {isSelected && <Check size={14} className="stroke-[3]" />}
+                        </button>
+                      );
+                    })}
+                  </div>
 
-                <div className="border-t border-slate-200/80 pt-1 dark:border-slate-800">
-                  <button
-                    onClick={() => {
-                      setIsMonthDropdownOpen(false);
-                      setIsMonthPickerOpen(true);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
-                  >
-                    <Calendar size={13} className="text-indigo-500" />
-                    <span>Browse Any Month / Year...</span>
-                  </button>
+                  <div className="border-t border-slate-200/80 pt-1.5 dark:border-slate-800/80">
+                    <button
+                      onClick={() => {
+                        setIsMonthDropdownOpen(false);
+                        setIsMonthPickerOpen(true);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/90 dark:hover:text-white"
+                    >
+                      <Calendar size={13} className="text-indigo-500" />
+                      <span>Browse Any Month / Year...</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
 
@@ -431,26 +435,29 @@ export default function Home() {
             </button>
 
             {isExportMenuOpen && (
-              <div className="glass-panel animate-in fade-in absolute right-0 z-40 mt-2 w-56 space-y-1 rounded-2xl p-2 shadow-2xl backdrop-blur-2xl">
-                <button
-                  onClick={handleExportMonthCSV}
-                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                  <Download size={13} className="text-indigo-500" /> Export {monthTitle} (.csv)
-                </button>
-                <button
-                  onClick={handleExportAllCSV}
-                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                  <Download size={13} className="text-purple-500" /> Export All Expenses (.csv)
-                </button>
-                <button
-                  onClick={handleExportJSON}
-                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                  <Download size={13} className="text-emerald-500" /> Full JSON Backup (.json)
-                </button>
-              </div>
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsExportMenuOpen(false)} />
+                <div className="glass-dropdown animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-60 space-y-1 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+                  <button
+                    onClick={handleExportMonthCSV}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/90 dark:hover:text-white"
+                  >
+                    <Download size={13} className="text-indigo-500" /> Export {monthTitle} (.csv)
+                  </button>
+                  <button
+                    onClick={handleExportAllCSV}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/90 dark:hover:text-white"
+                  >
+                    <Download size={13} className="text-purple-500" /> Export All Expenses (.csv)
+                  </button>
+                  <button
+                    onClick={handleExportJSON}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/90 dark:hover:text-white"
+                  >
+                    <Download size={13} className="text-emerald-500" /> Full JSON Backup (.json)
+                  </button>
+                </div>
+              </>
             )}
           </div>
 
