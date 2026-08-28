@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { StoreProvider } from '@/context/StoreContext';
+import { ToastProvider } from '@/context/ToastContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -19,9 +20,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body
-        className={`${inter.className} min-h-screen bg-neutral-50 text-neutral-900 antialiased transition-colors duration-200 dark:bg-black dark:text-white`}
+        className={`${inter.className} bg-ambient-mesh min-h-screen text-slate-900 antialiased transition-colors duration-200 dark:text-slate-100`}
       >
-        <StoreProvider>{children}</StoreProvider>
+        <ToastProvider>
+          <StoreProvider>{children}</StoreProvider>
+        </ToastProvider>
       </body>
     </html>
   );
