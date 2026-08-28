@@ -148,8 +148,8 @@ export default function AnalyticsPage() {
   const {
     user,
     authLoading,
-    expenses,
-    categories,
+    allExpenses: expenses,
+    allCategories: categories,
     monthlyBudget,
     setSelectedMonth,
     formatINR,

@@ -78,7 +78,9 @@ interface StoreContextType {
 
   // Data
   categories: Category[];
+  allCategories: Category[];
   expenses: Expense[];
+  allExpenses: Expense[];
   monthlyBudget: number | null;
   stats: MonthStats;
   loading: boolean;
@@ -146,7 +148,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [selectedMonth, setSelectedMonthState] = useState<string>(getCurrentMonthString());
   const [categories, setCategories] = useState<Category[]>([]);
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [allExpenses, setAllExpenses] = useState<Expense[]>([]);
   const [monthlyBudget, setMonthlyBudgetState] = useState<number | null>(null);
   const [stats, setStats] = useState<MonthStats>({
     allTimeTotalSpent: 0,
@@ -249,11 +253,14 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     } catch {}
     setUser(null);
     setCategories([]);
+    setAllCategories([]);
     setExpenses([]);
+    setAllExpenses([]);
     setMonthlyBudgetState(null);
     setStats({
       allTimeTotalSpent: 0,
       allTimeCount: 0,
+      recordedMonths: [],
       monthTotalSpent: 0,
       monthEmiTotal: 0,
       monthEmiCount: 0,
@@ -301,9 +308,11 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         setLoading(true);
         setError(null);
 
-        const [catRes, expRes, budgetRes, statsRes] = await Promise.all([
+        const [catRes, allCatRes, expRes, allExpRes, budgetRes, statsRes] = await Promise.all([
           fetch(`/api/categories?month=${month}`),
+          fetch('/api/categories'),
           fetch(`/api/expenses?month=${month}`),
+          fetch('/api/expenses'),
           fetch(`/api/budgets?month=${month}`),
           fetch(`/api/stats?month=${month}`),
         ]);
@@ -313,9 +322,19 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
           setCategories(catData.categories || []);
         }
 
+        if (allCatRes.ok) {
+          const allCatData = await allCatRes.json();
+          setAllCategories(allCatData.categories || []);
+        }
+
         if (expRes.ok) {
           const expData = await expRes.json();
           setExpenses(expData.expenses || []);
+        }
+
+        if (allExpRes.ok) {
+          const allExpData = await allExpRes.json();
+          setAllExpenses(allExpData.expenses || []);
         }
 
         if (budgetRes.ok) {
@@ -514,7 +533,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         goToNextMonth,
         goToCurrentMonth,
         categories,
+        allCategories,
         expenses,
+        allExpenses,
         monthlyBudget,
         stats,
         loading,

@@ -25,7 +25,7 @@ export default function AllTimeStatsModal({
   onClose,
   onSelectMonth,
 }: AllTimeStatsModalProps) {
-  const { expenses, categories, formatINR } = useStore();
+  const { allExpenses: expenses, allCategories: categories, formatINR } = useStore();
 
   const categoryMap = useMemo(() => {
     const map = new Map<string, { name: string; color: string }>();

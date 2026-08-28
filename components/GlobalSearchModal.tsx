@@ -15,7 +15,7 @@ export default function GlobalSearchModal({
   onClose,
   onSelectExpense,
 }: GlobalSearchModalProps) {
-  const { expenses, categories, formatINR } = useStore();
+  const { allExpenses: expenses, allCategories: categories, formatINR } = useStore();
   const [query, setQuery] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
   const [selectedModeFilter, setSelectedModeFilter] = useState<string>('all');
