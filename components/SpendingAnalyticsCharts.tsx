@@ -536,7 +536,7 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
                       className="h-3 w-3 shrink-0 rounded-full"
                       style={{ backgroundColor: cat.color }}
                     />
-                    <span className="max-w-[110px] truncate font-semibold text-neutral-900 dark:text-white">
+                    <span className="max-w-27.5 truncate font-semibold text-neutral-900 dark:text-white">
                       {cat.name}
                     </span>
                   </div>
