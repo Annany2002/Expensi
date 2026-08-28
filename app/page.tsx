@@ -10,7 +10,6 @@ import TransactionHistoryModal from '@/components/TransactionHistoryModal';
 import MonthPickerModal from '@/components/MonthPickerModal';
 import SpendingAnalyticsCharts from '@/components/SpendingAnalyticsCharts';
 import GlobalSearchModal from '@/components/GlobalSearchModal';
-import AllTimeStatsModal from '@/components/AllTimeStatsModal';
 import { exportToCSV, exportToJSON } from '@/lib/export';
 import {
   Plus,
@@ -93,7 +92,6 @@ export default function Home() {
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const [isAllTimeModalOpen, setIsAllTimeModalOpen] = useState(false);
   const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const [isEditingBudget, setIsEditingBudget] = useState(false);
@@ -616,21 +614,21 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Secondary Column: All-Time Spent & Active EMIs */}
+        {/* Secondary Column: All-Time Spent & Active EMIs / Daily Pace */}
         <div className="flex flex-col justify-between gap-4">
           {/* Lifetime Total Spent Card */}
-          <div
-            onClick={() => setIsAllTimeModalOpen(true)}
-            className="group flex flex-1 cursor-pointer flex-col justify-between rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-xs transition-all hover:border-neutral-300 hover:shadow-md dark:border-neutral-800/90 dark:bg-neutral-900 dark:hover:border-neutral-700"
+          <Link
+            href="/analytics"
+            className="group flex flex-1 cursor-pointer flex-col justify-between rounded-2xl border border-neutral-200/90 bg-white p-5 shadow-xs transition-all hover:border-neutral-300 hover:shadow-md dark:border-neutral-800/90 dark:bg-neutral-900 dark:hover:border-neutral-700"
             title="Click to view detailed all-time analytics"
           >
             <div className="flex items-center justify-between text-neutral-500">
-              <span className="text-xs font-bold tracking-wider uppercase">All-Time Total</span>
+              <span className="text-[10px] font-bold tracking-wider uppercase">All-Time Total</span>
               <div className="flex items-center gap-1.5">
-                <span className="text-[11px] font-semibold text-emerald-600 opacity-0 transition-opacity group-hover:opacity-100 dark:text-emerald-400">
-                  Detailed Stats →
+                <span className="text-[11px] font-bold text-blue-600 opacity-0 transition-opacity group-hover:opacity-100 dark:text-blue-400">
+                  Analytics Hub →
                 </span>
-                <div className="rounded-xl bg-emerald-50 p-1.5 text-emerald-600 transition-transform group-hover:scale-110 dark:bg-emerald-950/60 dark:text-emerald-400">
+                <div className="rounded-xl bg-blue-50 p-1.5 text-blue-600 transition-transform group-hover:scale-110 dark:bg-blue-950/60 dark:text-blue-400">
                   <TrendingUp size={15} />
                 </div>
               </div>
@@ -644,26 +642,49 @@ export default function Home() {
                 across all months
               </p>
             </div>
-          </div>
+          </Link>
 
-          {/* Active EMI Commitments Card */}
-          <div className="flex flex-1 flex-col justify-between rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-xs dark:border-neutral-800/90 dark:bg-neutral-900">
-            <div className="flex items-center justify-between text-neutral-500">
-              <span className="text-xs font-bold tracking-wider uppercase">Active EMIs</span>
-              <div className="rounded-xl bg-purple-50 p-1.5 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
-                <CreditCard size={15} />
+          {/* Dynamic Context Card: Active EMIs or Daily Safe Burn Allowance */}
+          {stats.monthEmiTotal > 0 ? (
+            <div className="flex flex-1 flex-col justify-between rounded-2xl border border-neutral-200/90 bg-white p-5 shadow-xs dark:border-neutral-800/90 dark:bg-neutral-900">
+              <div className="flex items-center justify-between text-neutral-500">
+                <span className="text-[10px] font-bold tracking-wider uppercase">Active EMIs</span>
+                <div className="rounded-xl bg-purple-50 p-1.5 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
+                  <CreditCard size={15} />
+                </div>
+              </div>
+              <div className="mt-2">
+                <p className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white">
+                  {formatINR(stats.monthEmiTotal)}
+                </p>
+                <p className="mt-0.5 text-[11px] font-medium text-neutral-500">
+                  {stats.monthEmiCount} active EMI installment{stats.monthEmiCount === 1 ? '' : 's'}{' '}
+                  in {monthTitle}
+                </p>
               </div>
             </div>
-            <div className="mt-2">
-              <p className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white">
-                {formatINR(stats.monthEmiTotal)}
-              </p>
-              <p className="mt-0.5 text-[11px] font-medium text-neutral-500">
-                {stats.monthEmiCount} active EMI installment{stats.monthEmiCount === 1 ? '' : 's'}{' '}
-                in {monthTitle}
-              </p>
+          ) : (
+            <div className="flex flex-1 flex-col justify-between rounded-2xl border border-neutral-200/90 bg-white p-5 shadow-xs dark:border-neutral-800/90 dark:bg-neutral-900">
+              <div className="flex items-center justify-between text-neutral-500">
+                <span className="text-[10px] font-bold tracking-wider uppercase">
+                  Daily Safe Pace
+                </span>
+                <div className="rounded-xl bg-emerald-50 p-1.5 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
+                  <Zap size={15} />
+                </div>
+              </div>
+              <div className="mt-2">
+                <p className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white">
+                  {runwayStats ? formatINR(Math.round(runwayStats.safeDailyAllowance)) : '₹0'}/day
+                </p>
+                <p className="mt-0.5 text-[11px] font-medium text-neutral-500">
+                  {runwayStats && runwayStats.daysRemaining > 0
+                    ? `${runwayStats.daysRemaining} days left in ${monthTitle}`
+                    : `Cycle ended for ${monthTitle}`}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -728,11 +749,6 @@ export default function Home() {
         isOpen={isSearchModalOpen}
         onClose={() => setIsSearchModalOpen(false)}
         onSelectExpense={handleSelectSearchedExpense}
-      />
-      <AllTimeStatsModal
-        isOpen={isAllTimeModalOpen}
-        onClose={() => setIsAllTimeModalOpen(false)}
-        onSelectMonth={setSelectedMonth}
       />
     </main>
   );
