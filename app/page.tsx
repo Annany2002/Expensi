@@ -7,6 +7,7 @@ import CategoryCard from '@/components/CategoryCard';
 import AddCategoryModal from '@/components/AddCategoryModal';
 import TransactionHistoryModal from '@/components/TransactionHistoryModal';
 import MonthPickerModal from '@/components/MonthPickerModal';
+import SpendingAnalyticsCharts from '@/components/SpendingAnalyticsCharts';
 import {
   Plus,
   Settings,
@@ -390,6 +391,11 @@ export default function Home() {
             </p>
           </div>
         </div>
+      </section>
+
+      {/* Interactive Spending Analytics & Charts Section */}
+      <section className="mb-8">
+        <SpendingAnalyticsCharts currentMonth={selectedMonth} />
       </section>
 
       {/* Categories Section */}
