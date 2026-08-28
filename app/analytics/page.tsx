@@ -386,7 +386,7 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-[1600px] space-y-6 bg-neutral-50/60 px-4 py-4 text-neutral-900 md:px-8 md:py-6 lg:px-10 dark:bg-black dark:text-white">
+    <main className="mx-auto min-h-screen w-full max-w-400 space-y-6 bg-neutral-50/60 px-4 py-4 text-neutral-900 md:px-8 md:py-6 lg:px-10 dark:bg-black dark:text-white">
       {/* Top Navbar */}
       <header className="flex flex-col justify-between gap-4 rounded-3xl border border-neutral-200/80 bg-white/80 p-4 shadow-xs backdrop-blur-md sm:flex-row sm:items-center dark:border-neutral-800/80 dark:bg-neutral-900/80">
         <div className="flex items-center gap-3">
