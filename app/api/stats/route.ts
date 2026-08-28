@@ -35,7 +35,12 @@ export async function GET(req: NextRequest) {
     const allTimeTotalSpent = allTimeResult[0]?.totalSpent || 0;
     const allTimeCount = allTimeResult[0]?.count || 0;
 
-    // 2. Month specific aggregate
+    // 2. Distinct recorded months
+    const recordedMonths: string[] = (await Expense.distinct('month', { userId: auth.userId }))
+      .sort()
+      .reverse();
+
+    // 3. Month specific aggregate
     let monthTotalSpent = 0;
     let monthEmiTotal = 0;
     let monthEmiCount = 0;
@@ -52,6 +57,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       allTimeTotalSpent,
       allTimeCount,
+      recordedMonths,
       monthTotalSpent,
       monthEmiTotal,
       monthEmiCount,

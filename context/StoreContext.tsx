@@ -46,6 +46,7 @@ export interface Expense {
 export interface MonthStats {
   allTimeTotalSpent: number;
   allTimeCount: number;
+  recordedMonths?: string[];
   monthTotalSpent: number;
   monthEmiTotal: number;
   monthEmiCount: number;
@@ -149,6 +150,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [stats, setStats] = useState<MonthStats>({
     allTimeTotalSpent: 0,
     allTimeCount: 0,
+    recordedMonths: [],
     monthTotalSpent: 0,
     monthEmiTotal: 0,
     monthEmiCount: 0,

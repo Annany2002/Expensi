@@ -35,6 +35,7 @@ import {
   WalletCards,
   ArrowUpRight,
   BarChart3,
+  ChevronDown,
 } from 'lucide-react';
 
 function Skeleton({ className }: { className?: string }) {
@@ -93,10 +94,19 @@ export default function Home() {
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isAllTimeModalOpen, setIsAllTimeModalOpen] = useState(false);
+  const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const [isEditingBudget, setIsEditingBudget] = useState(false);
   const [newBudget, setNewBudget] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+
+  // Available recorded months list for 1-click switching
+  const availableRecordedMonths = useMemo(() => {
+    const set = new Set<string>(stats.recordedMonths || []);
+    expenses.forEach((e) => set.add(e.month));
+    set.add(selectedMonth);
+    return Array.from(set).sort().reverse();
+  }, [stats.recordedMonths, expenses, selectedMonth]);
 
   // Derive selectedCategory directly from state
   const selectedCategory = selectedCategoryId
@@ -277,7 +287,7 @@ export default function Home() {
           </Link>
 
           {/* Month Navigator Group */}
-          <div className="flex h-10 items-center rounded-2xl border border-neutral-200/90 bg-neutral-50/80 p-1 dark:border-neutral-800 dark:bg-neutral-800/60">
+          <div className="relative flex h-10 items-center rounded-2xl border border-neutral-200/90 bg-neutral-50/80 p-1 dark:border-neutral-800 dark:bg-neutral-800/60">
             <button
               onClick={goToPreviousMonth}
               className="rounded-xl p-1.5 text-neutral-600 transition-all hover:bg-white hover:text-neutral-900 hover:shadow-2xs dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-white"
@@ -287,11 +297,13 @@ export default function Home() {
             </button>
 
             <button
-              onClick={() => setIsMonthPickerOpen(true)}
+              onClick={() => setIsMonthDropdownOpen(!isMonthDropdownOpen)}
               className="flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold text-neutral-900 transition-all hover:bg-white hover:shadow-2xs dark:text-white dark:hover:bg-neutral-700"
+              title="Select Month"
             >
               <Calendar size={13} className="text-neutral-400" />
               <span>{monthTitle}</span>
+              <ChevronDown size={12} className="text-neutral-400" />
             </button>
 
             <button
@@ -301,6 +313,53 @@ export default function Home() {
             >
               <ChevronRight size={16} />
             </button>
+
+            {/* Quick Month Select Dropdown Menu */}
+            {isMonthDropdownOpen && (
+              <div className="animate-in fade-in absolute top-12 left-0 z-40 w-56 space-y-1 rounded-2xl border border-neutral-200 bg-white p-2 shadow-xl dark:border-neutral-800 dark:bg-neutral-900">
+                <p className="px-2.5 py-1 text-[10px] font-bold tracking-wider text-neutral-400 uppercase">
+                  Jump to Recorded Month
+                </p>
+                {availableRecordedMonths.map((m) => {
+                  const [y, mon] = m.split('-').map(Number);
+                  const label = new Date(y, mon - 1, 1).toLocaleDateString('en-IN', {
+                    month: 'long',
+                    year: 'numeric',
+                  });
+                  const isSelected = m === selectedMonth;
+                  return (
+                    <button
+                      key={m}
+                      onClick={() => {
+                        setSelectedMonth(m);
+                        setIsMonthDropdownOpen(false);
+                      }}
+                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold transition-all ${
+                        isSelected
+                          ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+                          : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800'
+                      }`}
+                    >
+                      <span>{label}</span>
+                      {isSelected && <Check size={13} />}
+                    </button>
+                  );
+                })}
+
+                <div className="border-t border-neutral-100 pt-1 dark:border-neutral-800">
+                  <button
+                    onClick={() => {
+                      setIsMonthDropdownOpen(false);
+                      setIsMonthPickerOpen(true);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"
+                  >
+                    <Calendar size={13} />
+                    <span>Browse Any Month / Year...</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {!isCurrentMonthViewed && (
