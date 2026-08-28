@@ -18,6 +18,7 @@ export interface User {
 export interface Category {
   id: string;
   name: string;
+  month?: string;
   limit: number;
   spent: number;
   color: string;
@@ -369,7 +370,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       const res = await fetch('/api/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cat),
+        body: JSON.stringify({ ...cat, month: selectedMonth }),
       });
       if (res.ok) {
         await refreshData();

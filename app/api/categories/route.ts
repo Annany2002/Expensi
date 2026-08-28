@@ -15,7 +15,12 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const month = searchParams.get('month'); // e.g. "2026-08"
 
-    const categories = await Category.find({ userId: auth.userId }).sort({ createdAt: 1 }).lean();
+    const query: Record<string, unknown> = { userId: auth.userId };
+    if (month) {
+      query.month = month;
+    }
+
+    const categories = await Category.find(query).sort({ createdAt: 1 }).lean();
 
     let expensesByCat: Record<string, number> = {};
     if (month) {
@@ -33,6 +38,7 @@ export async function GET(req: NextRequest) {
     const formattedCategories = categories.map((cat) => ({
       id: cat._id.toString(),
       name: cat.name,
+      month: cat.month,
       limit: cat.limit || 0,
       color: cat.color || '#ffffff',
       spent: expensesByCat[cat._id.toString()] || 0,
@@ -55,15 +61,18 @@ export async function POST(req: NextRequest) {
 
     await connectToDatabase();
     const body = await req.json();
-    const { name, limit, color } = body;
+    const { name, limit, color, month } = body;
 
     if (!name || typeof name !== 'string') {
       return NextResponse.json({ error: 'Valid category name is required' }, { status: 400 });
     }
 
+    const categoryMonth = month || new Date().toISOString().substring(0, 7);
+
     const newCategory = await Category.create({
       userId: auth.userId,
       name: name.trim(),
+      month: categoryMonth,
       limit: typeof limit === 'number' ? limit : Number(limit) || 0,
       color: color || '#ffffff',
     });
@@ -73,6 +82,7 @@ export async function POST(req: NextRequest) {
         category: {
           id: newCategory._id.toString(),
           name: newCategory.name,
+          month: newCategory.month,
           limit: newCategory.limit,
           color: newCategory.color,
           spent: 0,
