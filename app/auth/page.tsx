@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useStore } from '@/context/StoreContext';
 import {
   Lock,
@@ -126,32 +127,40 @@ export default function AuthPage() {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-black">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-900 dark:border-neutral-700 dark:border-t-white" />
+      <div className="bg-ambient-mesh flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-300 border-t-indigo-600 dark:border-indigo-800 dark:border-t-indigo-400" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 p-4 transition-colors duration-200 dark:bg-black">
+    <div className="bg-ambient-mesh flex min-h-screen flex-col items-center justify-center p-4">
       {/* Top right theme toggle */}
       <div className="absolute top-6 right-6">
         <button
           onClick={toggleTheme}
-          className="rounded-xl border border-neutral-200 bg-white p-2.5 text-neutral-600 shadow-sm transition-all hover:text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+          className="rounded-2xl border border-slate-200/80 bg-white/70 p-2.5 text-slate-600 shadow-2xs backdrop-blur-md transition-all hover:border-slate-300 hover:bg-white hover:text-slate-900 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
           title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
         >
           {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
         </button>
       </div>
 
-      <div className="w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-8 shadow-xl dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="glass-panel w-full max-w-md rounded-3xl p-8 shadow-2xl">
         {/* Brand */}
-        <div className="mb-8 text-center">
-          <h1 className="mb-2 text-3xl font-black tracking-tight text-neutral-900 dark:text-white">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <Image
+            src="/logo.svg"
+            alt="Expensi Logo"
+            width={64}
+            height={64}
+            priority
+            className="mb-4 rounded-2xl shadow-lg shadow-indigo-500/25"
+          />
+          <h1 className="mb-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">
             Expensi
           </h1>
-          <p className="text-xs font-medium text-neutral-500">
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
             {isLogin
               ? 'Sign in to access your personal expense dashboard'
               : 'Create an account to start tracking expenses & EMIs'}
@@ -159,7 +168,7 @@ export default function AuthPage() {
         </div>
 
         {/* Tab switcher */}
-        <div className="mb-6 flex rounded-xl bg-neutral-100 p-1 dark:bg-neutral-800">
+        <div className="mb-6 flex rounded-2xl border border-slate-200/80 bg-slate-100/80 p-1 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-800/60">
           <button
             type="button"
             onClick={() => {
@@ -167,10 +176,10 @@ export default function AuthPage() {
               setShowGenPanel(false);
               setError(null);
             }}
-            className={`flex-1 rounded-lg py-2 text-xs font-bold transition-all ${
+            className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${
               isLogin
-                ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-900 dark:text-white'
-                : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-700 dark:text-white'
+                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
             }`}
           >
             Sign In
@@ -181,10 +190,10 @@ export default function AuthPage() {
               setIsLogin(false);
               setError(null);
             }}
-            className={`flex-1 rounded-lg py-2 text-xs font-bold transition-all ${
+            className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${
               !isLogin
-                ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-900 dark:text-white'
-                : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-700 dark:text-white'
+                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
             }`}
           >
             Create Account

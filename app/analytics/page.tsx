@@ -16,6 +16,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { useStore } from '@/context/StoreContext';
+import { useToast } from '@/context/ToastContext';
 import { exportToCSV, exportToJSON } from '@/lib/export';
 import {
   ArrowLeft,
@@ -24,7 +25,6 @@ import {
   PieChart as PieIcon,
   ReceiptText,
   Flame,
-  Award,
   Wallet,
   Download,
   Search,
@@ -156,6 +156,7 @@ export default function AnalyticsPage() {
     theme,
     toggleTheme,
   } = useStore();
+  const { toast } = useToast();
 
   const isDark = theme === 'dark';
 
@@ -379,44 +380,45 @@ export default function AnalyticsPage() {
 
   const handleExportAllCSV = () => {
     exportToCSV(expenses, categories, 'expensi_all_months_ledger.csv');
+    toast.success('All-Time CSV Exported', `${expenses.length} transactions downloaded`);
   };
 
   const handleExportJSON = () => {
     exportToJSON({ monthlyBudget, categories, expenses }, 'expensi_complete_backup.json');
+    toast.success('JSON Backup Created', 'Full database snapshot downloaded');
   };
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-400 space-y-6 bg-neutral-50/60 px-4 py-4 text-neutral-900 md:px-8 md:py-6 lg:px-10 dark:bg-black dark:text-white">
+    <main className="mx-auto min-h-screen w-full max-w-[1600px] space-y-6 px-4 py-4 md:px-8 md:py-6 lg:px-10">
       {/* Top Navbar */}
-      <header className="flex flex-col justify-between gap-4 rounded-3xl border border-neutral-200/80 bg-white/80 p-4 shadow-xs backdrop-blur-md sm:flex-row sm:items-center dark:border-neutral-800/80 dark:bg-neutral-900/80">
+      <header className="glass-panel flex flex-col justify-between gap-4 rounded-3xl p-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-neutral-200/90 bg-neutral-50/80 text-neutral-600 transition-all hover:border-neutral-300 hover:bg-white hover:text-neutral-900 dark:border-neutral-800 dark:bg-neutral-800/60 dark:text-neutral-400 dark:hover:border-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-white"
-            title="Back to Dashboard"
+            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-2xs transition-all hover:border-slate-300 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:text-white"
+            title="Back to Monthly Dashboard"
           >
-            <ArrowLeft size={18} />
+            <ArrowLeft size={16} />
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black tracking-tight text-neutral-900 dark:text-white">
+              <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
                 All-Time Spending Intelligence
               </h1>
-              <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-blue-700 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-300">
-                Lifetime Deep Dive
+              <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700 dark:border-indigo-900 dark:bg-indigo-950 dark:text-indigo-300">
+                Macro View
               </span>
             </div>
-            <p className="text-[11px] font-medium text-neutral-500">
-              Aggregated analytics across all recorded months, categories, and payment modes
+            <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+              Aggregated financial insights across all recorded billing cycles
             </p>
           </div>
         </div>
 
-        {/* Header Action Tools */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleExportAllCSV}
-            className="flex h-10 items-center gap-2 rounded-2xl border border-neutral-200/90 bg-white px-3.5 text-xs font-semibold text-neutral-700 shadow-2xs transition-all hover:border-neutral-300 hover:text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:border-neutral-700 dark:hover:text-white"
+            className="btn-secondary flex h-10 items-center gap-2 text-xs"
           >
             <Download size={14} />
             <span>Export CSV</span>
@@ -424,7 +426,7 @@ export default function AnalyticsPage() {
 
           <button
             onClick={handleExportJSON}
-            className="flex h-10 items-center gap-2 rounded-2xl border border-neutral-200/90 bg-white px-3.5 text-xs font-semibold text-neutral-700 shadow-2xs transition-all hover:border-neutral-300 hover:text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:border-neutral-700 dark:hover:text-white"
+            className="btn-secondary flex h-10 items-center gap-2 text-xs"
           >
             <Download size={14} />
             <span>Backup JSON</span>
@@ -432,7 +434,7 @@ export default function AnalyticsPage() {
 
           <button
             onClick={toggleTheme}
-            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-neutral-200/90 bg-neutral-50/80 text-neutral-600 transition-all hover:border-neutral-300 hover:bg-white hover:text-neutral-900 hover:shadow-2xs dark:border-neutral-800 dark:bg-neutral-800/60 dark:text-neutral-400 dark:hover:border-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-white"
+            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200/90 bg-white/80 text-slate-600 transition-all hover:border-slate-300 hover:bg-white hover:text-slate-900 hover:shadow-2xs dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
             title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
           >
             {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
@@ -444,99 +446,109 @@ export default function AnalyticsPage() {
       {metrics && (
         <section className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-6">
           {/* Card 1: Total Outflow */}
-          <div className="flex flex-col justify-between rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-xs dark:border-neutral-800/90 dark:bg-neutral-900">
-            <div className="flex items-center justify-between text-neutral-500">
-              <span className="text-[11px] font-bold tracking-wider uppercase">Total Outflow</span>
+          <div className="glass-card-interactive flex flex-col justify-between rounded-3xl p-5">
+            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span className="text-[10px] font-bold tracking-wider uppercase">Total Outflow</span>
               <div className="rounded-xl bg-emerald-50 p-1.5 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
                 <TrendingUp size={14} />
               </div>
             </div>
             <div className="mt-3">
-              <p className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white">
+              <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                 {formatINR(metrics.totalSpent)}
               </p>
-              <p className="mt-0.5 text-[10px] text-neutral-500">Lifetime total</p>
+              <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
+                Lifetime total
+              </p>
             </div>
           </div>
 
           {/* Card 2: Recorded Months */}
-          <div className="flex flex-col justify-between rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-xs dark:border-neutral-800/90 dark:bg-neutral-900">
-            <div className="flex items-center justify-between text-neutral-500">
-              <span className="text-[11px] font-bold tracking-wider uppercase">Active Months</span>
+          <div className="glass-card-interactive flex flex-col justify-between rounded-3xl p-5">
+            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span className="text-[10px] font-bold tracking-wider uppercase">Active Months</span>
               <div className="rounded-xl bg-blue-50 p-1.5 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
                 <Calendar size={14} />
               </div>
             </div>
             <div className="mt-3">
-              <p className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white">
+              <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                 {metrics.monthsCount}
               </p>
-              <p className="mt-0.5 text-[10px] text-neutral-500">Recorded billing cycles</p>
+              <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
+                Recorded billing cycles
+              </p>
             </div>
           </div>
 
           {/* Card 3: Avg Monthly Outflow */}
-          <div className="flex flex-col justify-between rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-xs dark:border-neutral-800/90 dark:bg-neutral-900">
-            <div className="flex items-center justify-between text-neutral-500">
-              <span className="text-[11px] font-bold tracking-wider uppercase">Avg / Month</span>
+          <div className="glass-card-interactive flex flex-col justify-between rounded-3xl p-5">
+            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span className="text-[10px] font-bold tracking-wider uppercase">Avg / Month</span>
               <div className="rounded-xl bg-indigo-50 p-1.5 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
                 <Flame size={14} />
               </div>
             </div>
             <div className="mt-3">
-              <p className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white">
+              <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                 {formatINR(Math.round(metrics.avgMonthlySpend))}
               </p>
-              <p className="mt-0.5 text-[10px] text-neutral-500">Monthly average pace</p>
+              <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
+                Monthly average pace
+              </p>
             </div>
           </div>
 
           {/* Card 4: Total Transactions */}
-          <div className="flex flex-col justify-between rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-xs dark:border-neutral-800/90 dark:bg-neutral-900">
-            <div className="flex items-center justify-between text-neutral-500">
-              <span className="text-[11px] font-bold tracking-wider uppercase">Transactions</span>
+          <div className="glass-card-interactive flex flex-col justify-between rounded-3xl p-5">
+            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span className="text-[10px] font-bold tracking-wider uppercase">Transactions</span>
               <div className="rounded-xl bg-purple-50 p-1.5 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
                 <ReceiptText size={14} />
               </div>
             </div>
             <div className="mt-3">
-              <p className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white">
+              <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                 {metrics.totalTransactions}
               </p>
-              <p className="mt-0.5 text-[10px] text-neutral-500">Total ledger entries</p>
+              <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
+                Total ledger entries
+              </p>
             </div>
           </div>
 
           {/* Card 5: Avg Transaction Size */}
-          <div className="flex flex-col justify-between rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-xs dark:border-neutral-800/90 dark:bg-neutral-900">
-            <div className="flex items-center justify-between text-neutral-500">
-              <span className="text-[11px] font-bold tracking-wider uppercase">Avg / Txn</span>
+          <div className="glass-card-interactive flex flex-col justify-between rounded-3xl p-5">
+            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span className="text-[10px] font-bold tracking-wider uppercase">Avg / Txn</span>
               <div className="rounded-xl bg-amber-50 p-1.5 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
                 <Wallet size={14} />
               </div>
             </div>
             <div className="mt-3">
-              <p className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white">
+              <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                 {formatINR(Math.round(metrics.avgPerTransaction))}
               </p>
-              <p className="mt-0.5 text-[10px] text-neutral-500">Average ticket size</p>
+              <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
+                Mean transaction
+              </p>
             </div>
           </div>
 
-          {/* Card 6: Largest Expense */}
-          <div className="flex flex-col justify-between rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-xs dark:border-neutral-800/90 dark:bg-neutral-900">
-            <div className="flex items-center justify-between text-neutral-500">
-              <span className="text-[11px] font-bold tracking-wider uppercase">Top Expense</span>
+          {/* Card 6: Peak Expense Single */}
+          <div className="glass-card-interactive flex flex-col justify-between rounded-3xl p-5">
+            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span className="text-[10px] font-bold tracking-wider uppercase">Largest Txn</span>
               <div className="rounded-xl bg-rose-50 p-1.5 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400">
-                <Award size={14} />
+                <ArrowUpRight size={14} />
               </div>
             </div>
             <div className="mt-3">
-              <p className="truncate text-2xl font-black tracking-tight text-neutral-900 dark:text-white">
-                {formatINR(metrics.largestExpense?.amount || 0)}
+              <p className="truncate text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                {metrics.largestExpense ? formatINR(metrics.largestExpense.amount) : '₹0'}
               </p>
-              <p className="truncate text-[10px] text-neutral-500">
-                {metrics.largestExpense?.description || 'Expense'}
+              <p className="mt-0.5 truncate text-[10px] text-slate-500 dark:text-slate-400">
+                {metrics.largestExpense ? metrics.largestExpense.description : 'None'}
               </p>
             </div>
           </div>
@@ -544,25 +556,25 @@ export default function AnalyticsPage() {
       )}
 
       {/* Main Interactive Visual Analytics Section */}
-      <section className="rounded-3xl border border-neutral-200/90 bg-white p-6 shadow-xs dark:border-neutral-800/90 dark:bg-neutral-900">
+      <section className="glass-panel relative overflow-hidden rounded-3xl p-6">
         <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h2 className="text-lg font-black tracking-tight text-neutral-900 dark:text-white">
+            <h2 className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
               All-Time Spending Visualizer
             </h2>
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
               Explore month-over-month trajectory, category evolution, and payment mode breakdowns
             </p>
           </div>
 
           {/* Tab Pill Switcher */}
-          <div className="flex items-center gap-1 overflow-x-auto rounded-2xl bg-neutral-100/90 p-1 dark:bg-neutral-800/90">
+          <div className="flex items-center gap-1 overflow-x-auto rounded-2xl border border-slate-200/80 bg-slate-100/80 p-1 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-800/60">
             <button
               onClick={() => setChartView('monthly')}
               className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all ${
                 chartView === 'monthly'
-                  ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-900 dark:text-white'
-                  : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                  ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-700 dark:text-white'
+                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
               }`}
             >
               <TrendingUp size={14} />
@@ -573,8 +585,8 @@ export default function AnalyticsPage() {
               onClick={() => setChartView('categories')}
               className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all ${
                 chartView === 'categories'
-                  ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-900 dark:text-white'
-                  : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                  ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-700 dark:text-white'
+                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
               }`}
             >
               <PieIcon size={14} />
@@ -585,8 +597,8 @@ export default function AnalyticsPage() {
               onClick={() => setChartView('modes')}
               className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all ${
                 chartView === 'modes'
-                  ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-900 dark:text-white'
-                  : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
+                  ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-700 dark:text-white'
+                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
               }`}
             >
               <Wallet size={14} />
@@ -598,7 +610,7 @@ export default function AnalyticsPage() {
         {/* Charts Canvas */}
         <div className="h-80 w-full">
           {!metrics ? (
-            <div className="flex h-full items-center justify-center text-sm text-neutral-400">
+            <div className="flex h-full items-center justify-center text-sm text-slate-400">
               No transactions recorded yet.
             </div>
           ) : chartView === 'monthly' ? (
@@ -618,13 +630,13 @@ export default function AnalyticsPage() {
                   dataKey="label"
                   tickLine={false}
                   axisLine={false}
-                  tick={{ fill: isDark ? '#737373' : '#a3a3a3', fontSize: 11 }}
+                  tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 11 }}
                 />
                 <YAxis
                   width={48}
                   tickLine={false}
                   axisLine={false}
-                  tick={{ fill: isDark ? '#737373' : '#a3a3a3', fontSize: 11 }}
+                  tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 11 }}
                   tickFormatter={(val) => `₹${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`}
                 />
                 <Tooltip
@@ -638,7 +650,7 @@ export default function AnalyticsPage() {
                   dataKey="regular"
                   name="Regular Expenses"
                   stackId="a"
-                  fill={isDark ? '#3b82f6' : '#2563eb'}
+                  fill={isDark ? '#6366f1' : '#4f46e5'}
                   radius={[4, 4, 0, 0]}
                 />
                 <Bar
@@ -669,7 +681,7 @@ export default function AnalyticsPage() {
                         <Cell
                           key={`cat-cell-${index}`}
                           fill={entry.color}
-                          stroke={isDark ? '#171717' : '#ffffff'}
+                          stroke={isDark ? '#0f172a' : '#ffffff'}
                           strokeWidth={2}
                         />
                       ))}
@@ -679,28 +691,32 @@ export default function AnalyticsPage() {
                 </ResponsiveContainer>
               </div>
 
-              {/* Category pills list */}
+              {/* Category list */}
               <div className="flex w-full flex-col justify-center space-y-2 overflow-y-auto sm:w-80">
                 {metrics.categoryBreakdown.map((cat) => (
                   <div
                     key={cat.name}
-                    className="flex items-center justify-between rounded-2xl border border-neutral-100 bg-neutral-50 px-3.5 py-2 text-xs dark:border-neutral-800 dark:bg-neutral-800/50"
+                    className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-slate-50/80 px-3.5 py-2 text-xs backdrop-blur-xs dark:border-slate-800 dark:bg-slate-800/50"
                   >
                     <div className="flex items-center gap-2">
                       <span
                         className="h-3 w-3 shrink-0 rounded-full"
                         style={{ backgroundColor: cat.color }}
                       />
-                      <span className="font-bold text-neutral-900 dark:text-white">{cat.name}</span>
-                      <span className="text-[10px] text-neutral-400">({cat.count} txns)</span>
+                      <div>
+                        <p className="font-bold text-slate-900 dark:text-white">{cat.name}</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          {cat.count} txns
+                        </p>
+                      </div>
                     </div>
                     <div className="text-right">
-                      <span className="font-black text-neutral-900 dark:text-white">
+                      <p className="font-black text-slate-900 dark:text-white">
                         {formatINR(cat.value)}
-                      </span>
-                      <span className="ml-1 text-[10px] font-medium text-neutral-500">
+                      </p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
                         ({cat.percentage}%)
-                      </span>
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -725,7 +741,7 @@ export default function AnalyticsPage() {
                         <Cell
                           key={`mode-cell-${index}`}
                           fill={entry.color}
-                          stroke={isDark ? '#171717' : '#ffffff'}
+                          stroke={isDark ? '#0f172a' : '#ffffff'}
                           strokeWidth={2}
                         />
                       ))}
@@ -740,7 +756,7 @@ export default function AnalyticsPage() {
                 {metrics.paymentModes.map((mode) => (
                   <div
                     key={mode.name}
-                    className="flex items-center justify-between rounded-2xl border border-neutral-100 bg-neutral-50 px-3.5 py-2.5 text-xs dark:border-neutral-800 dark:bg-neutral-800/50"
+                    className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-slate-50/80 px-3.5 py-2.5 text-xs backdrop-blur-xs dark:border-slate-800 dark:bg-slate-800/50"
                   >
                     <div className="flex items-center gap-2">
                       <span
@@ -748,15 +764,19 @@ export default function AnalyticsPage() {
                         style={{ backgroundColor: mode.color }}
                       />
                       <div>
-                        <p className="font-bold text-neutral-900 dark:text-white">{mode.name}</p>
-                        <p className="text-[10px] text-neutral-500">{mode.count} txns</p>
+                        <p className="font-bold text-slate-900 dark:text-white">{mode.name}</p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          {mode.count} txns
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-black text-neutral-900 dark:text-white">
+                      <p className="font-black text-slate-900 dark:text-white">
                         {formatINR(mode.value)}
                       </p>
-                      <p className="text-[10px] text-neutral-500">({mode.percentage}%)</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                        ({mode.percentage}%)
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -770,7 +790,7 @@ export default function AnalyticsPage() {
       {metrics && (
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-extrabold tracking-wider text-neutral-500 uppercase">
+            <h2 className="text-xs font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
               Monthly Ledger Cycles ({metrics.monthlyLedger.length})
             </h2>
           </div>
@@ -779,14 +799,16 @@ export default function AnalyticsPage() {
             {metrics.monthlyLedger.map((m) => (
               <div
                 key={m.month}
-                className="flex flex-col justify-between rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-xs transition-all hover:border-neutral-300 dark:border-neutral-800/90 dark:bg-neutral-900 dark:hover:border-neutral-700"
+                className="glass-card-interactive flex flex-col justify-between rounded-3xl p-5"
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-neutral-500 uppercase">{m.title}</span>
+                    <span className="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">
+                      {m.title}
+                    </span>
                     <button
                       onClick={() => handleJumpToMonth(m.month)}
-                      className="flex items-center gap-1 rounded-xl bg-neutral-100 px-2.5 py-1 text-[11px] font-bold text-neutral-700 transition-colors hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
+                      className="btn-secondary flex items-center gap-1 py-1 text-[11px] font-bold"
                     >
                       <span>Open Month</span>
                       <ArrowUpRight size={12} />
@@ -795,27 +817,25 @@ export default function AnalyticsPage() {
 
                   <div className="mt-3 flex items-baseline justify-between">
                     <div>
-                      <p className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white">
+                      <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                         {formatINR(m.total)}
                       </p>
-                      <p className="text-[11px] text-neutral-500">
-                        {m.count} recorded transactions
+                      <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                        {m.count} recorded transaction{m.count === 1 ? '' : 's'}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-2 border-t border-neutral-100 pt-3 text-xs dark:border-neutral-800">
+                <div className="mt-4 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 text-xs dark:border-slate-800">
                   <div>
-                    <span className="text-[10px] font-semibold text-neutral-400 uppercase">
-                      Regular
-                    </span>
-                    <p className="font-bold text-neutral-800 dark:text-neutral-200">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Regular</span>
+                    <p className="font-bold text-slate-800 dark:text-slate-200">
                       {formatINR(m.regular)}
                     </p>
                   </div>
                   <div>
-                    <span className="text-[10px] font-semibold text-neutral-400 uppercase">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">
                       EMI Outflow
                     </span>
                     <p className="font-bold text-purple-600 dark:text-purple-400">
@@ -830,13 +850,13 @@ export default function AnalyticsPage() {
       )}
 
       {/* Complete All-Time Searchable Transactions Table */}
-      <section className="space-y-4 rounded-3xl border border-neutral-200/90 bg-white p-6 shadow-xs dark:border-neutral-800/90 dark:bg-neutral-900">
+      <section className="glass-panel relative overflow-hidden rounded-3xl p-6">
         <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
           <div>
-            <h2 className="text-lg font-black tracking-tight text-neutral-900 dark:text-white">
+            <h2 className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
               All-Time Complete Transaction Ledger
             </h2>
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
               Showing {filteredTransactions.length} of {expenses.length} total entries across all
               months
             </p>
@@ -848,14 +868,14 @@ export default function AnalyticsPage() {
             <div className="relative">
               <Search
                 size={14}
-                className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-neutral-400"
+                className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400"
               />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search descriptions, amounts..."
-                className="glass-input py-1.5 pr-3 pl-8! text-xs"
+                className="glass-input py-1.5 pr-3 pl-8! text-xs font-medium"
               />
             </div>
 
@@ -903,11 +923,11 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Ledger Table */}
-        <div className="overflow-hidden rounded-2xl border border-neutral-200/90 dark:border-neutral-800">
+        <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200/90 dark:border-slate-800">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-neutral-200 bg-neutral-50 text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800/60">
+                <tr className="border-b border-slate-200/90 bg-slate-50/80 text-slate-500 backdrop-blur-xs dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
                   <th
                     onClick={() => {
                       if (sortField === 'date') setSortAsc(!sortAsc);
@@ -916,7 +936,7 @@ export default function AnalyticsPage() {
                         setSortAsc(false);
                       }
                     }}
-                    className="cursor-pointer p-3.5 font-bold select-none hover:text-neutral-900 dark:hover:text-white"
+                    className="cursor-pointer p-3.5 font-bold select-none hover:text-slate-900 dark:hover:text-white"
                   >
                     <div className="flex items-center gap-1">
                       <span>Date</span>
@@ -936,7 +956,7 @@ export default function AnalyticsPage() {
                         setSortAsc(false);
                       }
                     }}
-                    className="cursor-pointer p-3.5 text-right font-bold select-none hover:text-neutral-900 dark:hover:text-white"
+                    className="cursor-pointer p-3.5 text-right font-bold select-none hover:text-slate-900 dark:hover:text-white"
                   >
                     <div className="flex items-center justify-end gap-1">
                       <span>Amount</span>
@@ -946,10 +966,13 @@ export default function AnalyticsPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
                 {filteredTransactions.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-neutral-500">
+                    <td
+                      colSpan={6}
+                      className="py-12 text-center text-slate-500 dark:text-slate-400"
+                    >
                       No transactions match the selected filters.
                     </td>
                   </tr>
@@ -959,12 +982,12 @@ export default function AnalyticsPage() {
                     return (
                       <tr
                         key={exp.id}
-                        className="transition-colors hover:bg-neutral-50/80 dark:hover:bg-neutral-800/40"
+                        className="transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
                       >
-                        <td className="p-3.5 font-semibold text-neutral-600 dark:text-neutral-400">
+                        <td className="p-3.5 font-semibold text-slate-600 dark:text-slate-400">
                           {exp.date}
                         </td>
-                        <td className="p-3.5 font-bold text-neutral-900 dark:text-white">
+                        <td className="p-3.5 font-bold text-slate-900 dark:text-white">
                           <div className="flex items-center gap-2">
                             <span>{exp.description}</span>
                             {exp.isEmi && (
@@ -978,7 +1001,7 @@ export default function AnalyticsPage() {
                           </div>
                         </td>
                         <td className="p-3.5">
-                          <div className="flex items-center gap-1.5 font-semibold text-neutral-800 dark:text-neutral-200">
+                          <div className="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
                             <span
                               className="h-2.5 w-2.5 rounded-full"
                               style={{ backgroundColor: cat?.color || '#3b82f6' }}
@@ -987,19 +1010,19 @@ export default function AnalyticsPage() {
                           </div>
                         </td>
                         <td className="p-3.5">
-                          <span className="rounded-md border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-[10px] font-semibold text-neutral-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400">
+                          <span className="rounded-md border border-slate-200/80 bg-slate-100/80 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
                             {exp.isEmi ? 'Card' : exp.paymentMethod || 'UPI'}
                           </span>
                         </td>
-                        <td className="p-3.5 font-medium text-neutral-500">
+                        <td className="p-3.5 font-medium text-slate-500 dark:text-slate-400">
                           <button
                             onClick={() => handleJumpToMonth(exp.month)}
-                            className="hover:underline"
+                            className="hover:text-indigo-600 hover:underline dark:hover:text-indigo-400"
                           >
                             {exp.month}
                           </button>
                         </td>
-                        <td className="p-3.5 text-right font-black text-neutral-900 dark:text-white">
+                        <td className="p-3.5 text-right font-black text-slate-900 dark:text-white">
                           {formatINR(exp.amount)}
                         </td>
                       </tr>

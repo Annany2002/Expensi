@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Category, useStore } from '@/context/StoreContext';
-import { Trash2, ChevronRight, ReceiptText } from 'lucide-react';
+import { useToast } from '@/context/ToastContext';
+import { Trash2, ChevronRight, ReceiptText, Loader2 } from 'lucide-react';
 
 interface CategoryCardProps {
   category: Category;
@@ -9,6 +10,8 @@ interface CategoryCardProps {
 
 export default function CategoryCard({ category, onViewTransactions }: CategoryCardProps) {
   const { deleteCategory, formatINR, expenses, selectedMonth } = useStore();
+  const { toast } = useToast();
+  const [isDeleting, setIsDeleting] = useState(false);
   const hasLimit = category.limit > 0;
   const percentage = hasLimit ? Math.min((category.spent / category.limit) * 100, 100) : 0;
   const isOverBudget = hasLimit && category.spent > category.limit;
@@ -24,36 +27,44 @@ export default function CategoryCard({ category, onViewTransactions }: CategoryC
   const sharePercent =
     totalMonthSpent > 0 ? Math.round((category.spent / totalMonthSpent) * 100) : 0;
 
-  const handleDelete = (e: React.MouseEvent) => {
+  const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (window.confirm(`Delete category "${category.name}" and all its expenses?`)) {
-      deleteCategory(category.id);
+      try {
+        setIsDeleting(true);
+        await deleteCategory(category.id);
+        toast.success('Category Deleted', `"${category.name}" and its expenses removed`);
+      } catch {
+        toast.error('Failed to delete category');
+      } finally {
+        setIsDeleting(false);
+      }
     }
   };
 
   return (
     <div
       onClick={onViewTransactions}
-      className="group cursor-pointer rounded-2xl border border-neutral-200/90 bg-white p-5 shadow-xs transition-all hover:border-neutral-300 hover:shadow-md dark:border-neutral-800/90 dark:bg-neutral-900 dark:hover:border-neutral-700"
+      className="glass-card-interactive group cursor-pointer rounded-3xl p-5"
     >
       <div className="mb-3.5 flex items-start justify-between">
         <div className="flex items-center gap-2.5">
           <div
-            className="h-3.5 w-3.5 shrink-0 rounded-full shadow-xs ring-2 ring-white/50 dark:ring-black/50"
+            className="h-3.5 w-3.5 shrink-0 rounded-full shadow-xs ring-2 ring-white/60 dark:ring-black/60"
             style={{ backgroundColor: category.color || '#3b82f6' }}
           />
           <div>
             <div className="flex items-center gap-1.5">
-              <h3 className="text-base font-bold tracking-tight text-neutral-900 dark:text-white">
+              <h3 className="text-base font-bold tracking-tight text-slate-900 dark:text-white">
                 {category.name}
               </h3>
               {totalMonthSpent > 0 && category.spent > 0 && (
-                <span className="py-0.2 rounded-md border border-neutral-100 bg-neutral-50 px-1.5 text-[9px] font-bold text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800 dark:text-neutral-400">
+                <span className="py-0.2 rounded-md border border-slate-200/90 bg-slate-100/90 px-1.5 text-[9px] font-bold text-slate-600 backdrop-blur-xs dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300">
                   {sharePercent}% of total
                 </span>
               )}
             </div>
-            <span className="flex items-center gap-1 text-[11px] font-medium text-neutral-500">
+            <span className="flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
               <ReceiptText size={11} />
               {categoryExpensesCount} txn{categoryExpensesCount === 1 ? '' : 's'}
             </span>
@@ -62,12 +73,17 @@ export default function CategoryCard({ category, onViewTransactions }: CategoryC
         <div className="flex items-center gap-1.5">
           <button
             onClick={handleDelete}
-            className="rounded-xl p-1.5 text-neutral-400 opacity-0 transition-colors group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/50 dark:hover:text-red-400"
+            disabled={isDeleting}
+            className="rounded-xl p-1.5 text-slate-400 opacity-0 transition-colors group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/50 dark:hover:text-rose-400"
             title="Delete Category"
           >
-            <Trash2 size={14} />
+            {isDeleting ? (
+              <Loader2 size={14} className="animate-spin text-rose-500" />
+            ) : (
+              <Trash2 size={14} />
+            )}
           </button>
-          <div className="rounded-xl p-1 text-neutral-400 transition-transform group-hover:translate-x-0.5 group-hover:text-neutral-900 dark:group-hover:text-white">
+          <div className="rounded-xl p-1 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-slate-900 dark:group-hover:text-white">
             <ChevronRight size={16} />
           </div>
         </div>
@@ -75,27 +91,27 @@ export default function CategoryCard({ category, onViewTransactions }: CategoryC
 
       <div className="mb-2.5 flex items-end justify-between">
         <div>
-          <span className="mb-0.5 block text-[10px] font-bold tracking-wider text-neutral-400 uppercase">
+          <span className="mb-0.5 block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
             Spent
           </span>
           <span
-            className={`text-2xl font-black tracking-tight ${isOverBudget ? 'text-rose-600 dark:text-rose-400' : 'text-neutral-900 dark:text-white'}`}
+            className={`text-2xl font-black tracking-tight ${isOverBudget ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}`}
           >
             {formatINR(category.spent)}
           </span>
         </div>
         <div className="text-right">
-          <span className="mb-0.5 block text-[10px] font-bold tracking-wider text-neutral-400 uppercase">
+          <span className="mb-0.5 block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
             Limit
           </span>
-          <span className="text-xs font-bold text-neutral-600 dark:text-neutral-400">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
             {hasLimit ? formatINR(category.limit) : 'No limit'}
           </span>
         </div>
       </div>
 
       {hasLimit ? (
-        <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800">
           <div
             className={`h-full rounded-full transition-all duration-500 ${isOverBudget ? 'bg-rose-500' : ''}`}
             style={{
