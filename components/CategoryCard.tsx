@@ -41,7 +41,7 @@ export default function CategoryCard({ category, onViewTransactions }: CategoryC
             </h3>
             <span className="flex items-center gap-1 text-[11px] font-medium text-neutral-500">
               <ReceiptText size={11} />
-              {categoryExpensesCount} txn{categoryExpensesCount === 1 ? '' : 's'} this month
+              {categoryExpensesCount} txn{categoryExpensesCount === 1 ? '' : 's'}
             </span>
           </div>
         </div>
