@@ -607,6 +607,7 @@ export default function AnalyticsPage() {
               <BarChart
                 data={metrics.monthlyChartData}
                 margin={{ top: 15, right: 15, left: 0, bottom: 5 }}
+                maxBarSize={56}
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -626,13 +627,19 @@ export default function AnalyticsPage() {
                   tick={{ fill: isDark ? '#737373' : '#a3a3a3', fontSize: 11 }}
                   tickFormatter={(val) => `₹${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`}
                 />
-                <Tooltip content={<CustomMonthlyTooltip />} />
+                <Tooltip
+                  content={<CustomMonthlyTooltip />}
+                  cursor={{
+                    fill: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
+                    radius: 8,
+                  }}
+                />
                 <Bar
                   dataKey="regular"
                   name="Regular Expenses"
                   stackId="a"
                   fill={isDark ? '#3b82f6' : '#2563eb'}
-                  radius={[0, 0, 0, 0]}
+                  radius={[4, 4, 0, 0]}
                 />
                 <Bar
                   dataKey="emi"
