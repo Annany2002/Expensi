@@ -220,27 +220,27 @@ export default function AnalyticsPage() {
     const sortedByAmt = [...expenses].sort((a, b) => b.amount - a.amount);
     const largestExpense = sortedByAmt[0];
 
-    // Category breakdown
-    const catSpendMap: Record<string, { amount: number; count: number }> = {};
+    // Category breakdown aggregated by name
+    const catSpendMap: Record<string, { amount: number; count: number; color: string }> = {};
     expenses.forEach((e) => {
-      if (!catSpendMap[e.categoryId]) {
-        catSpendMap[e.categoryId] = { amount: 0, count: 0 };
+      const cat = categoryMap.get(e.categoryId);
+      const name = cat?.name || 'Uncategorized';
+      const color = cat?.color || '#3b82f6';
+      if (!catSpendMap[name]) {
+        catSpendMap[name] = { amount: 0, count: 0, color };
       }
-      catSpendMap[e.categoryId].amount += e.amount;
-      catSpendMap[e.categoryId].count += 1;
+      catSpendMap[name].amount += e.amount;
+      catSpendMap[name].count += 1;
     });
 
     const categoryBreakdown: CategoryPieData[] = Object.entries(catSpendMap)
-      .map(([catId, data]) => {
-        const cat = categoryMap.get(catId);
-        return {
-          name: cat?.name || 'Uncategorized',
-          value: data.amount,
-          color: cat?.color || '#3b82f6',
-          count: data.count,
-          percentage: totalSpent > 0 ? ((data.amount / totalSpent) * 100).toFixed(1) : '0',
-        };
-      })
+      .map(([name, data]) => ({
+        name,
+        value: data.amount,
+        color: data.color,
+        count: data.count,
+        percentage: totalSpent > 0 ? ((data.amount / totalSpent) * 100).toFixed(1) : '0',
+      }))
       .sort((a, b) => b.value - a.value);
 
     // Payment mode breakdown

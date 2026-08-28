@@ -65,28 +65,28 @@ export default function AllTimeStatsModal({
     // Highest single transaction
     const largestExpense = [...expenses].sort((a, b) => b.amount - a.amount)[0];
 
-    // Category breakdown
-    const catSpendMap: Record<string, { amount: number; count: number }> = {};
+    // Category breakdown aggregated by name
+    const catSpendMap: Record<string, { amount: number; count: number; color: string }> = {};
     expenses.forEach((e) => {
-      if (!catSpendMap[e.categoryId]) {
-        catSpendMap[e.categoryId] = { amount: 0, count: 0 };
+      const catInfo = categoryMap.get(e.categoryId);
+      const name = catInfo?.name || 'Uncategorized';
+      const color = catInfo?.color || '#3b82f6';
+      if (!catSpendMap[name]) {
+        catSpendMap[name] = { amount: 0, count: 0, color };
       }
-      catSpendMap[e.categoryId].amount += e.amount;
-      catSpendMap[e.categoryId].count += 1;
+      catSpendMap[name].amount += e.amount;
+      catSpendMap[name].count += 1;
     });
 
     const categoryBreakdown = Object.entries(catSpendMap)
-      .map(([catId, data]) => {
-        const catInfo = categoryMap.get(catId);
-        return {
-          id: catId,
-          name: catInfo?.name || 'Uncategorized',
-          color: catInfo?.color || '#3b82f6',
-          amount: data.amount,
-          count: data.count,
-          percentage: totalSpent > 0 ? ((data.amount / totalSpent) * 100).toFixed(1) : '0',
-        };
-      })
+      .map(([name, data]) => ({
+        id: name,
+        name,
+        color: data.color,
+        amount: data.amount,
+        count: data.count,
+        percentage: totalSpent > 0 ? ((data.amount / totalSpent) * 100).toFixed(1) : '0',
+      }))
       .sort((a, b) => b.amount - a.amount);
 
     // Payment mode breakdown
