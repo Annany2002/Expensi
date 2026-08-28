@@ -30,6 +30,8 @@ import {
   Zap,
   CheckCircle2,
   AlertTriangle,
+  WalletCards,
+  ArrowUpRight,
 } from 'lucide-react';
 
 function Skeleton({ className }: { className?: string }) {
@@ -42,29 +44,22 @@ function Skeleton({ className }: { className?: string }) {
 
 function PageSkeleton() {
   return (
-    <main className="mx-auto min-h-screen max-w-5xl space-y-8 bg-neutral-50 p-4 text-neutral-900 md:p-8 dark:bg-black dark:text-white">
+    <main className="mx-auto min-h-screen max-w-6xl space-y-8 bg-neutral-50 p-4 text-neutral-900 md:p-8 dark:bg-black dark:text-white">
       <div className="flex items-center justify-between">
-        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-9 w-40" />
         <div className="flex gap-2">
-          <Skeleton className="h-9 w-36" />
-          <Skeleton className="h-9 w-9 rounded-full" />
+          <Skeleton className="h-10 w-44 rounded-2xl" />
+          <Skeleton className="h-10 w-10 rounded-2xl" />
         </div>
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Skeleton className="h-44 rounded-2xl md:col-span-2" />
-        <Skeleton className="h-44 rounded-2xl" />
-      </div>
-      <div className="space-y-4">
-        <div className="flex justify-between">
-          <Skeleton className="h-5 w-24" />
-          <Skeleton className="h-5 w-16" />
-        </div>
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-28 rounded-2xl" />
-          ))}
+        <Skeleton className="h-48 rounded-3xl md:col-span-2" />
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-22 rounded-3xl" />
+          <Skeleton className="h-22 rounded-3xl" />
         </div>
       </div>
+      <Skeleton className="h-96 rounded-3xl" />
     </main>
   );
 }
@@ -229,38 +224,49 @@ export default function Home() {
   };
 
   return (
-    <main className="mx-auto min-h-screen max-w-5xl bg-neutral-50 p-4 text-neutral-900 md:p-8 dark:bg-black dark:text-white">
-      {/* Header */}
-      <header className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white">
-            Expensi
-          </h1>
-          <p className="text-xs font-medium text-neutral-500">
-            Smart Multi-Month Expense & EMI Tracker
-          </p>
+    <main className="mx-auto min-h-screen max-w-6xl space-y-6 bg-neutral-50/60 p-4 text-neutral-900 md:p-8 dark:bg-black dark:text-white">
+      {/* Top Navbar Toolbar */}
+      <header className="flex flex-col justify-between gap-4 rounded-3xl border border-neutral-200/80 bg-white/80 p-4 shadow-xs backdrop-blur-md sm:flex-row sm:items-center dark:border-neutral-800/80 dark:bg-neutral-900/80">
+        {/* Brand & Subtitle */}
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-neutral-900 text-white shadow-sm dark:bg-white dark:text-black">
+            <WalletCards size={20} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-black tracking-tight text-neutral-900 dark:text-white">
+                Expensi
+              </h1>
+              <span className="rounded-full border border-neutral-200 bg-neutral-100 px-2 py-0.5 text-[10px] font-bold text-neutral-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400">
+                v2.0
+              </span>
+            </div>
+            <p className="text-[11px] font-medium text-neutral-500">
+              Multi-Month Expense & EMI Ledger
+            </p>
+          </div>
         </div>
 
-        {/* Controls: Search, Month Picker, Export, Theme, Profile */}
+        {/* Toolbar Controls */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Global Search Button */}
+          {/* Quick Search Pill */}
           <button
             onClick={() => setIsSearchModalOpen(true)}
-            className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold text-neutral-600 shadow-sm transition-all hover:border-neutral-300 hover:text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:border-neutral-700 dark:hover:text-white"
+            className="flex h-10 items-center gap-2 rounded-2xl border border-neutral-200/90 bg-neutral-50/80 px-3.5 text-xs font-semibold text-neutral-600 transition-all hover:border-neutral-300 hover:bg-white hover:text-neutral-900 dark:border-neutral-800 dark:bg-neutral-800/60 dark:text-neutral-400 dark:hover:border-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-white"
             title="Search expenses (Cmd+K)"
           >
             <Search size={14} />
-            <span className="hidden sm:inline">Search</span>
-            <kbd className="hidden rounded border border-neutral-200 bg-neutral-100 px-1.5 py-0.5 font-mono text-[10px] text-neutral-500 sm:inline dark:border-neutral-700 dark:bg-neutral-800">
+            <span className="hidden md:inline">Search</span>
+            <kbd className="rounded border border-neutral-200 bg-white px-1.5 py-0.5 font-mono text-[10px] text-neutral-500 shadow-2xs dark:border-neutral-700 dark:bg-neutral-900">
               ⌘K
             </kbd>
           </button>
 
-          {/* Month Navigator */}
-          <div className="flex items-center rounded-xl border border-neutral-200 bg-white p-1 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+          {/* Month Navigator Group */}
+          <div className="flex h-10 items-center rounded-2xl border border-neutral-200/90 bg-neutral-50/80 p-1 dark:border-neutral-800 dark:bg-neutral-800/60">
             <button
               onClick={goToPreviousMonth}
-              className="rounded-lg p-1.5 text-neutral-600 transition-all hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"
+              className="rounded-xl p-1.5 text-neutral-600 transition-all hover:bg-white hover:text-neutral-900 hover:shadow-2xs dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-white"
               title="Previous Month"
             >
               <ChevronLeft size={16} />
@@ -268,7 +274,7 @@ export default function Home() {
 
             <button
               onClick={() => setIsMonthPickerOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-bold text-neutral-900 transition-all hover:bg-neutral-100 dark:text-white dark:hover:bg-neutral-800"
+              className="flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold text-neutral-900 transition-all hover:bg-white hover:shadow-2xs dark:text-white dark:hover:bg-neutral-700"
             >
               <Calendar size={13} className="text-neutral-400" />
               <span>{monthTitle}</span>
@@ -276,7 +282,7 @@ export default function Home() {
 
             <button
               onClick={goToNextMonth}
-              className="rounded-lg p-1.5 text-neutral-600 transition-all hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"
+              className="rounded-xl p-1.5 text-neutral-600 transition-all hover:bg-white hover:text-neutral-900 hover:shadow-2xs dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-white"
               title="Next Month"
             >
               <ChevronRight size={16} />
@@ -286,26 +292,26 @@ export default function Home() {
           {!isCurrentMonthViewed && (
             <button
               onClick={goToCurrentMonth}
-              className="flex items-center gap-1 rounded-xl border border-neutral-200 bg-white p-2 text-xs font-medium text-neutral-600 shadow-sm transition-all hover:text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+              className="flex h-10 items-center gap-1 rounded-2xl border border-neutral-200/90 bg-white px-3 text-xs font-bold text-neutral-700 shadow-2xs transition-all hover:border-neutral-300 hover:text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:border-neutral-700 dark:hover:text-white"
               title="Jump to Current Month"
             >
-              <RotateCcw size={14} />
+              <RotateCcw size={13} />
               <span className="hidden sm:inline">Today</span>
             </button>
           )}
 
-          {/* Export Dropdown */}
+          {/* Action Group: Export & Theme */}
           <div className="relative">
             <button
               onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
-              className="rounded-xl border border-neutral-200 bg-white p-2 text-neutral-600 shadow-sm transition-all hover:text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+              className="flex h-10 w-10 items-center justify-center rounded-2xl border border-neutral-200/90 bg-neutral-50/80 text-neutral-600 transition-all hover:border-neutral-300 hover:bg-white hover:text-neutral-900 hover:shadow-2xs dark:border-neutral-800 dark:bg-neutral-800/60 dark:text-neutral-400 dark:hover:border-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-white"
               title="Export Data"
             >
-              <Download size={16} />
+              <Download size={15} />
             </button>
 
             {isExportMenuOpen && (
-              <div className="animate-in fade-in absolute right-0 z-40 mt-2 w-48 space-y-1 rounded-2xl border border-neutral-200 bg-white p-2 shadow-xl dark:border-neutral-800 dark:bg-neutral-900">
+              <div className="animate-in fade-in absolute right-0 z-40 mt-2 w-52 space-y-1 rounded-2xl border border-neutral-200 bg-white p-2 shadow-xl dark:border-neutral-800 dark:bg-neutral-900">
                 <button
                   onClick={handleExportMonthCSV}
                   className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
@@ -328,260 +334,273 @@ export default function Home() {
             )}
           </div>
 
-          {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
-            className="rounded-xl border border-neutral-200 bg-white p-2 text-neutral-600 shadow-sm transition-all hover:text-neutral-900 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-neutral-200/90 bg-neutral-50/80 text-neutral-600 transition-all hover:border-neutral-300 hover:bg-white hover:text-neutral-900 hover:shadow-2xs dark:border-neutral-800 dark:bg-neutral-800/60 dark:text-neutral-400 dark:hover:border-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-white"
             title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
           >
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
           </button>
 
           {/* User Profile & Sign Out */}
           {user && (
-            <div className="flex items-center gap-1.5 pl-1">
+            <div className="flex h-10 items-center gap-1 rounded-2xl border border-neutral-200/90 bg-neutral-50/80 p-1 dark:border-neutral-800 dark:bg-neutral-800/60">
               <div
                 title={user.email}
-                className="hidden items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 shadow-sm sm:flex dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300"
+                className="hidden items-center gap-1.5 px-2 text-xs font-semibold text-neutral-700 md:flex dark:text-neutral-300"
               >
                 <UserIcon size={13} className="text-neutral-400" />
-                <span className="max-w-30 truncate">{user.name || user.email.split('@')[0]}</span>
+                <span className="max-w-28 truncate">{user.name || user.email.split('@')[0]}</span>
               </div>
               <button
                 onClick={handleSignOut}
-                className="rounded-xl border border-neutral-200 bg-white p-2 text-neutral-500 shadow-sm transition-colors hover:text-red-500 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:text-red-400"
+                className="rounded-xl p-1.5 text-neutral-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/50 dark:hover:text-red-400"
                 title="Sign Out"
               >
-                <LogOut size={16} />
+                <LogOut size={15} />
               </button>
             </div>
           )}
         </div>
       </header>
 
-      {/* Metrics Section */}
-      <section className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-        {/* Main Card: Month Spending & Optional Budget */}
-        <div className="space-y-4 rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm md:col-span-2 dark:border-neutral-800 dark:bg-neutral-900">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold tracking-wider text-neutral-500 uppercase">
-                {monthTitle} Spending
-              </span>
-              <button
-                onClick={() => {
-                  setIsEditingBudget(true);
-                  setNewBudget(monthlyBudget !== null ? monthlyBudget.toString() : '');
-                }}
-                className="p-1 text-neutral-400 transition-colors hover:text-neutral-900 dark:hover:text-white"
-                title="Configure Monthly Budget"
-              >
-                <Settings size={13} />
-              </button>
+      {/* Metrics Bento Grid */}
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {/* Main Card: Month Spending, Limit, and Runway Forecast */}
+        <div className="flex flex-col justify-between rounded-3xl border border-neutral-200/90 bg-white p-6 shadow-xs md:col-span-2 dark:border-neutral-800/90 dark:bg-neutral-900">
+          <div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold tracking-wider text-neutral-500 uppercase">
+                  {monthTitle} Spending
+                </span>
+                <button
+                  onClick={() => {
+                    setIsEditingBudget(true);
+                    setNewBudget(monthlyBudget !== null ? monthlyBudget.toString() : '');
+                  }}
+                  className="rounded-lg p-1 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-white"
+                  title="Configure Monthly Budget"
+                >
+                  <Settings size={13} />
+                </button>
+              </div>
+
+              {hasBudget && (
+                <span className="rounded-full border border-neutral-200 bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
+                  Budget: {formatINR(monthlyBudget)}
+                </span>
+              )}
             </div>
 
-            {hasBudget && (
-              <span className="rounded-full border border-neutral-200 bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400">
-                Budget: {formatINR(monthlyBudget)}
-              </span>
-            )}
-          </div>
-
-          {/* Total Spent Amount */}
-          <div className="flex items-baseline gap-3">
-            <h2
-              className={`text-4xl font-extrabold tracking-tight ${isOverBudget ? 'text-red-500 dark:text-red-400' : 'text-neutral-900 dark:text-white'}`}
-            >
-              {formatINR(totalSpentThisMonth)}
-            </h2>
-            {hasBudget && (
-              <span className="text-sm font-medium text-neutral-500">
-                of {formatINR(monthlyBudget)}
-              </span>
-            )}
+            {/* Total Spent Amount */}
+            <div className="mt-3 flex items-baseline gap-3">
+              <h2
+                className={`text-4xl font-black tracking-tight ${isOverBudget ? 'text-red-500 dark:text-red-400' : 'text-neutral-900 dark:text-white'}`}
+              >
+                {formatINR(totalSpentThisMonth)}
+              </h2>
+              {hasBudget && (
+                <span className="text-sm font-semibold text-neutral-500">
+                  of {formatINR(monthlyBudget)}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Budget Editing Form or Stats Breakdown */}
-          {isEditingBudget ? (
-            <form
-              onSubmit={handleUpdateBudget}
-              className="animate-in fade-in space-y-2.5 rounded-xl border border-neutral-200 bg-neutral-50 p-3.5 dark:border-neutral-700 dark:bg-neutral-800/50"
-            >
-              <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400">
-                Set Monthly Budget (Optional - leave empty to remove)
-              </label>
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 font-medium text-neutral-500">
-                    ₹
-                  </span>
-                  <input
-                    type="number"
-                    value={newBudget}
-                    onChange={(e) => setNewBudget(e.target.value)}
-                    placeholder="Enter limit or leave blank"
-                    className="glass-input w-full py-2 pl-8! text-sm"
-                    autoFocus
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="rounded-xl bg-neutral-900 p-2.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 dark:bg-white dark:text-black"
-                  title="Save"
-                >
-                  <Check size={16} />
-                </button>
-                {hasBudget && (
+          <div className="mt-4">
+            {isEditingBudget ? (
+              <form
+                onSubmit={handleUpdateBudget}
+                className="animate-in fade-in space-y-2.5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/50"
+              >
+                <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-400">
+                  Set Monthly Budget Limit (leave empty to remove)
+                </label>
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 font-medium text-neutral-500">
+                      ₹
+                    </span>
+                    <input
+                      type="number"
+                      value={newBudget}
+                      onChange={(e) => setNewBudget(e.target.value)}
+                      placeholder="Enter limit or leave blank"
+                      className="glass-input w-full py-2 pl-8! text-sm"
+                      autoFocus
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-neutral-900 p-2.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 dark:bg-white dark:text-black"
+                    title="Save"
+                  >
+                    <Check size={16} />
+                  </button>
+                  {hasBudget && (
+                    <button
+                      type="button"
+                      onClick={handleClearBudget}
+                      className="rounded-xl border border-red-200 px-3 py-2 text-xs font-semibold text-red-500 transition-colors hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950/40"
+                    >
+                      Clear
+                    </button>
+                  )}
                   <button
                     type="button"
-                    onClick={handleClearBudget}
-                    className="rounded-xl border border-red-200 px-3 py-2 text-xs font-medium text-red-500 transition-colors hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950/40"
+                    onClick={() => setIsEditingBudget(false)}
+                    className="rounded-xl bg-neutral-200 p-2.5 text-neutral-700 hover:opacity-80 dark:bg-neutral-700 dark:text-neutral-300"
+                    title="Cancel"
                   >
-                    Clear
+                    <X size={16} />
                   </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setIsEditingBudget(false)}
-                  className="rounded-xl bg-neutral-200 p-2.5 text-neutral-700 hover:opacity-80 dark:bg-neutral-700 dark:text-neutral-300"
-                  title="Cancel"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            </form>
-          ) : hasBudget ? (
-            /* Budget Stats & Progress & Runway Forecast */
-            <div className="space-y-3 pt-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold tracking-wider text-neutral-500 uppercase">
-                  Remaining:{' '}
-                  <span
-                    className={
-                      remaining < 0
-                        ? 'font-bold text-red-500'
-                        : 'font-bold text-neutral-900 dark:text-white'
-                    }
-                  >
-                    {formatINR(remaining)}
+                </div>
+              </form>
+            ) : hasBudget ? (
+              /* Budget Stats & Progress & Runway Forecast */
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold tracking-wider text-neutral-500 uppercase">
+                    Remaining:{' '}
+                    <span
+                      className={
+                        remaining < 0
+                          ? 'font-bold text-red-500'
+                          : 'font-bold text-neutral-900 dark:text-white'
+                      }
+                    >
+                      {formatINR(remaining)}
+                    </span>
                   </span>
-                </span>
-                <span
-                  className={`font-bold ${percentage > 100 ? 'text-red-500' : 'text-neutral-600 dark:text-neutral-400'}`}
-                >
-                  {Math.round(percentage)}% used
-                </span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${percentage > 100 ? 'bg-red-500' : 'bg-neutral-900 dark:bg-white'}`}
-                  style={{ width: `${Math.min(percentage, 100)}%` }}
-                />
-              </div>
+                  <span
+                    className={`font-bold ${percentage > 100 ? 'text-red-500' : 'text-neutral-700 dark:text-neutral-300'}`}
+                  >
+                    {Math.round(percentage)}% used
+                  </span>
+                </div>
+                <div className="h-2.5 w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${percentage > 100 ? 'bg-red-500' : percentage > 85 ? 'bg-amber-500' : 'bg-neutral-900 dark:bg-white'}`}
+                    style={{ width: `${Math.min(percentage, 100)}%` }}
+                  />
+                </div>
 
-              {/* Runway & Daily Pace Assistant Pill */}
-              {runwayStats && (
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-neutral-100 bg-neutral-50 p-3 text-xs dark:border-neutral-800/80 dark:bg-neutral-800/50">
-                  <div className="flex items-center gap-2">
-                    <div className="rounded-lg bg-blue-100 p-1 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
-                      <Zap size={14} />
-                    </div>
-                    <div>
-                      <p className="font-bold text-neutral-900 dark:text-white">
-                        Avg: {formatINR(Math.round(runwayStats.dailyAverage))}/day
-                      </p>
-                      {runwayStats.daysRemaining > 0 ? (
-                        <p className="text-[11px] text-neutral-500">
-                          Safe limit: {formatINR(Math.round(runwayStats.safeDailyAllowance))}/day (
-                          {runwayStats.daysRemaining} days left)
+                {/* Runway & Daily Pace Assistant Pill */}
+                {runwayStats && (
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-neutral-100 bg-neutral-50/90 p-3.5 text-xs dark:border-neutral-800 dark:bg-neutral-800/40">
+                    <div className="flex items-center gap-2.5">
+                      <div className="rounded-xl bg-blue-100 p-1.5 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
+                        <Zap size={15} />
+                      </div>
+                      <div>
+                        <p className="font-bold text-neutral-900 dark:text-white">
+                          Avg: {formatINR(Math.round(runwayStats.dailyAverage))}/day
                         </p>
+                        {runwayStats.daysRemaining > 0 ? (
+                          <p className="text-[11px] text-neutral-500">
+                            Safe limit: {formatINR(Math.round(runwayStats.safeDailyAllowance))}/day
+                            ({runwayStats.daysRemaining} days left)
+                          </p>
+                        ) : (
+                          <p className="text-[11px] text-neutral-500">Month ended</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      {runwayStats.isPaceOver ? (
+                        <span className="flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300">
+                          <AlertTriangle size={12} />
+                          Pace: +{formatINR(Math.round(runwayStats.paceDiff))}
+                        </span>
                       ) : (
-                        <p className="text-[11px] text-neutral-500">Month ended</p>
+                        <span className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
+                          <CheckCircle2 size={12} />
+                          On Track
+                        </span>
                       )}
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-1.5">
-                    {runwayStats.isPaceOver ? (
-                      <span className="flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300">
-                        <AlertTriangle size={12} />
-                        Pace: +{formatINR(Math.round(runwayStats.paceDiff))}
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300">
-                        <CheckCircle2 size={12} />
-                        On Track
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            /* Optional budget not set indicator */
-            <div className="flex items-center justify-between pt-1">
-              <p className="text-xs text-neutral-500">
-                No monthly spending limit configured for this month.
-              </p>
-              <button
-                onClick={() => setIsEditingBudget(true)}
-                className="text-xs font-semibold text-neutral-900 underline underline-offset-4 transition-opacity hover:opacity-80 dark:text-white"
-              >
-                + Set Budget
-              </button>
-            </div>
-          )}
+                )}
+              </div>
+            ) : (
+              /* Optional budget not set indicator */
+              <div className="flex items-center justify-between pt-2">
+                <p className="text-xs text-neutral-500">
+                  No monthly spending limit configured for this month.
+                </p>
+                <button
+                  onClick={() => setIsEditingBudget(true)}
+                  className="flex items-center gap-1 text-xs font-bold text-neutral-900 transition-opacity hover:opacity-80 dark:text-white"
+                >
+                  <span>Set Budget</span>
+                  <ArrowUpRight size={13} />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Secondary Cards Column: All-Time Spent & Active EMIs */}
-        <div className="space-y-4">
-          {/* Lifetime Total Spent */}
-          <div className="space-y-1 rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+        {/* Secondary Column: All-Time Spent & Active EMIs */}
+        <div className="flex flex-col justify-between gap-4">
+          {/* Lifetime Total Spent Card */}
+          <div className="flex flex-1 flex-col justify-between rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-xs dark:border-neutral-800/90 dark:bg-neutral-900">
             <div className="flex items-center justify-between text-neutral-500">
               <span className="text-xs font-bold tracking-wider uppercase">All-Time Total</span>
-              <TrendingUp size={15} className="text-emerald-500" />
+              <div className="rounded-xl bg-emerald-50 p-1.5 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
+                <TrendingUp size={15} />
+              </div>
             </div>
-            <p className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white">
-              {formatINR(stats.allTimeTotalSpent)}
-            </p>
-            <p className="text-[11px] text-neutral-500">
-              Across all recorded months and categories
-            </p>
+            <div className="mt-2">
+              <p className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white">
+                {formatINR(stats.allTimeTotalSpent)}
+              </p>
+              <p className="mt-0.5 text-[11px] font-medium text-neutral-500">
+                {stats.allTimeCount} recorded transaction{stats.allTimeCount === 1 ? '' : 's'}{' '}
+                across all months
+              </p>
+            </div>
           </div>
 
-          {/* Active EMI Commitments */}
-          <div className="space-y-1 rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+          {/* Active EMI Commitments Card */}
+          <div className="flex flex-1 flex-col justify-between rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-xs dark:border-neutral-800/90 dark:bg-neutral-900">
             <div className="flex items-center justify-between text-neutral-500">
               <span className="text-xs font-bold tracking-wider uppercase">Active EMIs</span>
-              <CreditCard size={15} className="text-purple-500" />
+              <div className="rounded-xl bg-purple-50 p-1.5 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
+                <CreditCard size={15} />
+              </div>
             </div>
-            <p className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white">
-              {formatINR(stats.monthEmiTotal)}
-            </p>
-            <p className="text-[11px] text-neutral-500">
-              {stats.monthEmiCount} active EMI installment{stats.monthEmiCount === 1 ? '' : 's'} in{' '}
-              {monthTitle}
-            </p>
+            <div className="mt-2">
+              <p className="text-2xl font-black tracking-tight text-neutral-900 dark:text-white">
+                {formatINR(stats.monthEmiTotal)}
+              </p>
+              <p className="mt-0.5 text-[11px] font-medium text-neutral-500">
+                {stats.monthEmiCount} active EMI installment{stats.monthEmiCount === 1 ? '' : 's'}{' '}
+                in {monthTitle}
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Interactive Spending Analytics & Charts Section */}
-      <section className="mb-8">
+      <section>
         <SpendingAnalyticsCharts currentMonth={selectedMonth} />
       </section>
 
       {/* Categories Section */}
-      <section>
-        <div className="mb-4 flex items-center justify-between">
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-bold tracking-wider text-neutral-500 uppercase">
+            <h2 className="text-sm font-extrabold tracking-wider text-neutral-500 uppercase">
               Categories ({categories.length})
             </h2>
           </div>
           <button
             onClick={() => setIsCategoryModalOpen(true)}
-            className="flex items-center gap-1.5 rounded-xl bg-neutral-900 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition-all hover:opacity-90 dark:bg-white dark:text-black"
+            className="flex items-center gap-1.5 rounded-2xl bg-neutral-900 px-4 py-2 text-xs font-bold text-white shadow-xs transition-all hover:opacity-90 dark:bg-white dark:text-black"
           >
             <Plus size={14} /> Add Category
           </button>
@@ -595,7 +614,7 @@ export default function Home() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {categories.map((category) => (
               <CategoryCard
                 key={category.id}

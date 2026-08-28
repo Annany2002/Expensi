@@ -81,23 +81,23 @@ function CustomDailyTooltip({
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="rounded-xl border border-neutral-200 bg-white/95 p-3 text-xs shadow-xl backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/95">
-        <p className="mb-1 font-bold text-neutral-900 dark:text-white">Day {data.day}</p>
-        <div className="space-y-1">
-          <p className="flex items-center justify-between gap-4 text-neutral-600 dark:text-neutral-300">
+      <div className="rounded-2xl border border-neutral-200 bg-white/95 p-3.5 text-xs shadow-xl backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/95">
+        <p className="mb-1.5 font-bold text-neutral-900 dark:text-white">Day {data.day}</p>
+        <div className="space-y-1.5">
+          <p className="flex items-center justify-between gap-6 text-neutral-600 dark:text-neutral-300">
             <span>Daily Spend:</span>
             <span className="font-bold text-neutral-900 dark:text-white">
               {formatCurrency(data.dailySpend)}
             </span>
           </p>
-          <p className="flex items-center justify-between gap-4 text-neutral-600 dark:text-neutral-300">
+          <p className="flex items-center justify-between gap-6 text-neutral-600 dark:text-neutral-300">
             <span>Cumulative:</span>
             <span className="font-bold text-neutral-900 dark:text-white">
               {formatCurrency(data.cumulativeSpend)}
             </span>
           </p>
           {data.items.length > 0 && (
-            <p className="mt-1.5 border-t border-neutral-200 pt-1 text-[10px] text-neutral-500 dark:border-neutral-800">
+            <p className="mt-2 border-t border-neutral-200 pt-1.5 text-[10px] text-neutral-500 dark:border-neutral-800">
               {data.items.slice(0, 3).join(', ')}
               {data.items.length > 3 ? ` +${data.items.length - 3} more` : ''}
             </p>
@@ -119,7 +119,7 @@ function CustomPieTooltip({
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="rounded-xl border border-neutral-200 bg-white/95 p-3 text-xs shadow-xl backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/95">
+      <div className="rounded-2xl border border-neutral-200 bg-white/95 p-3.5 text-xs shadow-xl backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/95">
         <div className="flex items-center gap-2 font-bold text-neutral-900 dark:text-white">
           <span
             className="inline-block h-2.5 w-2.5 rounded-full"
@@ -127,7 +127,7 @@ function CustomPieTooltip({
           />
           <span>{data.name}</span>
         </div>
-        <p className="mt-1 text-sm font-black text-neutral-900 dark:text-white">
+        <p className="mt-1.5 text-sm font-black text-neutral-900 dark:text-white">
           {formatCurrency(data.value)}{' '}
           <span className="text-xs font-normal text-neutral-500">({data.percentage}%)</span>
         </p>
@@ -147,7 +147,7 @@ function CustomPaymentModeTooltip({
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="rounded-xl border border-neutral-200 bg-white/95 p-3 text-xs shadow-xl backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/95">
+      <div className="rounded-2xl border border-neutral-200 bg-white/95 p-3.5 text-xs shadow-xl backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/95">
         <div className="flex items-center gap-2 font-bold text-neutral-900 dark:text-white">
           <span
             className="inline-block h-2.5 w-2.5 rounded-full"
@@ -155,7 +155,7 @@ function CustomPaymentModeTooltip({
           />
           <span>{data.name}</span>
         </div>
-        <div className="mt-1 space-y-0.5">
+        <div className="mt-1.5 space-y-0.5">
           <p className="text-sm font-black text-neutral-900 dark:text-white">
             {formatCurrency(data.value)}{' '}
             <span className="text-xs font-normal text-neutral-500">({data.percentage}%)</span>
@@ -180,17 +180,17 @@ function CustomMonthlyTooltip({
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="rounded-xl border border-neutral-200 bg-white/95 p-3 text-xs shadow-xl backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/95">
-        <p className="mb-1 font-bold text-neutral-900 dark:text-white">{data.label}</p>
-        <div className="space-y-1">
-          <p className="flex items-center justify-between gap-4 text-neutral-600 dark:text-neutral-300">
+      <div className="rounded-2xl border border-neutral-200 bg-white/95 p-3.5 text-xs shadow-xl backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/95">
+        <p className="mb-1.5 font-bold text-neutral-900 dark:text-white">{data.label}</p>
+        <div className="space-y-1.5">
+          <p className="flex items-center justify-between gap-6 text-neutral-600 dark:text-neutral-300">
             <span>Total Spent:</span>
             <span className="font-bold text-neutral-900 dark:text-white">
               {formatCurrency(data.total)}
             </span>
           </p>
           {data.emi > 0 && (
-            <p className="flex items-center justify-between gap-4 text-purple-600 dark:text-purple-400">
+            <p className="flex items-center justify-between gap-6 text-purple-600 dark:text-purple-400">
               <span>EMI Portion:</span>
               <span className="font-semibold">{formatCurrency(data.emi)}</span>
             </p>
@@ -358,11 +358,11 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
   const hasData = currentMonthExpenses.length > 0;
 
   return (
-    <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-      {/* Header & Tabs */}
-      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+    <div className="rounded-3xl border border-neutral-200/90 bg-white p-6 shadow-sm dark:border-neutral-800/90 dark:bg-neutral-900">
+      {/* Header & Single-Row Tabs */}
+      <div className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
         <div>
-          <h2 className="text-lg font-bold text-neutral-900 dark:text-white">
+          <h2 className="text-lg font-extrabold tracking-tight text-neutral-900 dark:text-white">
             Spending Analytics & Visuals
           </h2>
           <p className="text-xs text-neutral-500">
@@ -371,11 +371,11 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
           </p>
         </div>
 
-        {/* Tab switcher */}
-        <div className="flex flex-wrap rounded-xl bg-neutral-100 p-1 dark:bg-neutral-800">
+        {/* Tab switcher - clean horizontal layout */}
+        <div className="flex items-center gap-1 overflow-x-auto rounded-2xl bg-neutral-100/90 p-1 dark:bg-neutral-800/90">
           <button
             onClick={() => setActiveTab('daily')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+            className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
               activeTab === 'daily'
                 ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-900 dark:text-white'
                 : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
@@ -386,7 +386,7 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
           </button>
           <button
             onClick={() => setActiveTab('category')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+            className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
               activeTab === 'category'
                 ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-900 dark:text-white'
                 : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
@@ -397,7 +397,7 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
           </button>
           <button
             onClick={() => setActiveTab('modes')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+            className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
               activeTab === 'modes'
                 ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-900 dark:text-white'
                 : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
@@ -408,7 +408,7 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
           </button>
           <button
             onClick={() => setActiveTab('monthly')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+            className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
               activeTab === 'monthly'
                 ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-900 dark:text-white'
                 : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
@@ -435,7 +435,7 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
         ) : activeTab === 'daily' ? (
           /* Daily Cumulative & Bar Chart */
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={dailyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <AreaChart data={dailyData} margin={{ top: 15, right: 15, left: 0, bottom: 5 }}>
               <defs>
                 <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop
@@ -459,6 +459,7 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
                 interval={2}
               />
               <YAxis
+                width={48}
                 tickLine={false}
                 axisLine={false}
                 tick={{ fill: isDark ? '#737373' : '#a3a3a3', fontSize: 11 }}
@@ -528,14 +529,14 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
               {categoryData.map((cat) => (
                 <div
                   key={cat.name}
-                  className="flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50 px-3 py-2 text-xs dark:border-neutral-800 dark:bg-neutral-800/50"
+                  className="flex items-center justify-between rounded-2xl border border-neutral-100 bg-neutral-50 px-3.5 py-2 text-xs dark:border-neutral-800 dark:bg-neutral-800/50"
                 >
                   <div className="flex items-center gap-2">
                     <span
                       className="h-3 w-3 shrink-0 rounded-full"
                       style={{ backgroundColor: cat.color }}
                     />
-                    <span className="max-w-27.5 truncate font-semibold text-neutral-900 dark:text-white">
+                    <span className="max-w-[110px] truncate font-semibold text-neutral-900 dark:text-white">
                       {cat.name}
                     </span>
                   </div>
@@ -585,7 +586,7 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
               {paymentModesData.map((mode) => (
                 <div
                   key={mode.name}
-                  className="flex items-center justify-between rounded-xl border border-neutral-100 bg-neutral-50 px-3 py-2.5 text-xs dark:border-neutral-800 dark:bg-neutral-800/50"
+                  className="flex items-center justify-between rounded-2xl border border-neutral-100 bg-neutral-50 px-3.5 py-2.5 text-xs dark:border-neutral-800 dark:bg-neutral-800/50"
                 >
                   <div className="flex items-center gap-2">
                     <span
@@ -612,7 +613,7 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
         ) : (
           /* Multi-Month Comparison Bar Chart */
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <BarChart data={monthlyData} margin={{ top: 15, right: 15, left: 0, bottom: 5 }}>
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
@@ -625,6 +626,7 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
                 tick={{ fill: isDark ? '#737373' : '#a3a3a3', fontSize: 11 }}
               />
               <YAxis
+                width={48}
                 tickLine={false}
                 axisLine={false}
                 tick={{ fill: isDark ? '#737373' : '#a3a3a3', fontSize: 11 }}
