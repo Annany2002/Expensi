@@ -5,7 +5,6 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
-  BarChart,
   Bar,
   PieChart,
   Pie,
@@ -17,7 +16,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { useStore } from '@/context/StoreContext';
-import { TrendingUp, PieChart as PieIcon, BarChart3, Calendar, Wallet } from 'lucide-react';
+import { TrendingUp, PieChart as PieIcon, Calendar, Wallet } from 'lucide-react';
 
 interface SpendingAnalyticsChartsProps {
   currentMonth: string; // e.g. "2026-08"
@@ -45,15 +44,6 @@ interface PaymentModePoint {
   count: number;
   color: string;
   percentage: string;
-}
-
-interface MonthlyPoint {
-  month: string;
-  label: string;
-  regular: number;
-  emi: number;
-  total: number;
-  isCurrent: boolean;
 }
 
 const PAYMENT_MODE_COLORS: Record<string, string> = {
@@ -137,7 +127,7 @@ function CustomPieTooltip({
   return null;
 }
 
-function CustomPaymentModeTooltip({
+function CustomModeTooltip({
   active,
   payload,
 }: {
@@ -170,41 +160,9 @@ function CustomPaymentModeTooltip({
   return null;
 }
 
-function CustomMonthlyTooltip({
-  active,
-  payload,
-}: {
-  active?: boolean;
-  payload?: Array<{ payload: MonthlyPoint }>;
-}) {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    return (
-      <div className="rounded-2xl border border-neutral-200 bg-white/95 p-3.5 text-xs shadow-xl backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/95">
-        <p className="mb-1.5 font-bold text-neutral-900 dark:text-white">{data.label}</p>
-        <div className="space-y-1.5">
-          <p className="flex items-center justify-between gap-6 text-neutral-600 dark:text-neutral-300">
-            <span>Total Spent:</span>
-            <span className="font-bold text-neutral-900 dark:text-white">
-              {formatCurrency(data.total)}
-            </span>
-          </p>
-          {data.emi > 0 && (
-            <p className="flex items-center justify-between gap-6 text-purple-600 dark:text-purple-400">
-              <span>EMI Portion:</span>
-              <span className="font-semibold">{formatCurrency(data.emi)}</span>
-            </p>
-          )}
-        </div>
-      </div>
-    );
-  }
-  return null;
-}
-
 export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyticsChartsProps) {
   const { expenses, categories, monthlyBudget, formatINR, theme } = useStore();
-  const [activeTab, setActiveTab] = useState<'daily' | 'category' | 'modes' | 'monthly'>('daily');
+  const [activeTab, setActiveTab] = useState<'daily' | 'category' | 'modes'>('daily');
 
   const isDark = theme === 'dark';
 
@@ -220,33 +178,42 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
     const [yearStr, monthStr] = currentMonth.split('-');
     const year = parseInt(yearStr, 10);
     const month = parseInt(monthStr, 10);
+
     const daysInMonth = new Date(year, month, 0).getDate();
 
-    const dailyMap: { [day: number]: { amount: number; count: number; items: string[] } } = {};
+    const dailyMap: {
+      [day: number]: {
+        spend: number;
+        count: number;
+        items: string[];
+      };
+    } = {};
+
     for (let d = 1; d <= daysInMonth; d++) {
-      dailyMap[d] = { amount: 0, count: 0, items: [] };
+      dailyMap[d] = { spend: 0, count: 0, items: [] };
     }
 
     currentMonthExpenses.forEach((exp) => {
-      const day = parseInt(exp.date.split('-')[2], 10);
+      const expDate = new Date(exp.date);
+      const day = expDate.getDate();
       if (dailyMap[day]) {
-        dailyMap[day].amount += exp.amount;
+        dailyMap[day].spend += exp.amount;
         dailyMap[day].count += 1;
-        if (exp.description && !dailyMap[day].items.includes(exp.description)) {
-          dailyMap[day].items.push(exp.description);
-        }
+        dailyMap[day].items.push(`${exp.description} (₹${exp.amount})`);
       }
     });
 
-    let cumulative = 0;
+    let runningTotal = 0;
     const result: DailyPoint[] = [];
+
     for (let d = 1; d <= daysInMonth; d++) {
-      cumulative += dailyMap[d].amount;
+      runningTotal += dailyMap[d].spend;
+      const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       result.push({
-        day: `${d}`,
-        date: `${yearStr}-${monthStr}-${String(d).padStart(2, '0')}`,
-        dailySpend: dailyMap[d].amount,
-        cumulativeSpend: cumulative,
+        day: String(d),
+        date: formattedDate,
+        dailySpend: dailyMap[d].spend,
+        cumulativeSpend: runningTotal,
         count: dailyMap[d].count,
         items: dailyMap[d].items,
       });
@@ -321,40 +288,6 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
       .sort((a, b) => b.value - a.value);
   }, [currentMonthExpenses]);
 
-  // 5. Multi-Month History (Last 4 months + current + future 1 month)
-  const monthlyData: MonthlyPoint[] = useMemo(() => {
-    const [currY, currM] = currentMonth.split('-').map(Number);
-    const monthsList: string[] = [];
-
-    for (let offset = -4; offset <= 1; offset++) {
-      const d = new Date(currY, currM - 1 + offset, 1);
-      const mStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      monthsList.push(mStr);
-    }
-
-    return monthsList.map((m) => {
-      const monthExp = expenses.filter((e) => e.month === m);
-      const regularSpent = monthExp.filter((e) => !e.isEmi).reduce((s, e) => s + e.amount, 0);
-      const emiSpent = monthExp.filter((e) => e.isEmi).reduce((s, e) => s + e.amount, 0);
-      const totalSpent = regularSpent + emiSpent;
-
-      const [y, mon] = m.split('-').map(Number);
-      const monthLabel = new Date(y, mon - 1, 1).toLocaleString('default', {
-        month: 'short',
-        year: '2-digit',
-      });
-
-      return {
-        month: m,
-        label: monthLabel,
-        regular: regularSpent,
-        emi: emiSpent,
-        total: totalSpent,
-        isCurrent: m === currentMonth,
-      };
-    });
-  }, [expenses, currentMonth]);
-
   const hasData = currentMonthExpenses.length > 0;
 
   return (
@@ -366,8 +299,7 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
             Spending Analytics & Visuals
           </h2>
           <p className="text-xs text-neutral-500">
-            Interactive breakdown of daily spending, categories, payment methods, and multi-month
-            trends
+            Interactive breakdown of daily velocity, categories, and payment methods for this month
           </p>
         </div>
 
@@ -406,23 +338,12 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
             <Wallet size={14} />
             <span>Payment Modes</span>
           </button>
-          <button
-            onClick={() => setActiveTab('monthly')}
-            className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-all ${
-              activeTab === 'monthly'
-                ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-900 dark:text-white'
-                : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white'
-            }`}
-          >
-            <BarChart3 size={14} />
-            <span>Multi-Month</span>
-          </button>
         </div>
       </div>
 
       {/* Main Chart Canvas */}
       <div className="h-72 w-full">
-        {!hasData && activeTab !== 'monthly' ? (
+        {!hasData ? (
           <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-200 dark:border-neutral-800">
             <Calendar className="mb-2 text-neutral-400" size={32} />
             <p className="text-sm font-medium text-neutral-500">
@@ -456,7 +377,7 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
                 tickLine={false}
                 axisLine={false}
                 tick={{ fill: isDark ? '#737373' : '#a3a3a3', fontSize: 11 }}
-                interval={2}
+                interval="preserveStartEnd"
               />
               <YAxis
                 width={48}
@@ -487,17 +408,12 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
                 fillOpacity={1}
                 fill="url(#spendGradient)"
               />
-              <Bar
-                dataKey="dailySpend"
-                fill={isDark ? '#22c55e' : '#16a34a'}
-                opacity={0.7}
-                radius={[4, 4, 0, 0]}
-              />
+              <Bar dataKey="dailySpend" fill={isDark ? '#22c55e' : '#16a34a'} opacity={0.6} />
             </AreaChart>
           </ResponsiveContainer>
         ) : activeTab === 'category' ? (
-          /* Category Donut & Legend */
-          <div className="flex h-full flex-col items-center gap-6 sm:flex-row">
+          /* Category Donut & Share List */
+          <div className="flex h-full flex-col items-center gap-6 md:flex-row">
             <div className="h-full flex-1">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -505,8 +421,8 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
                     data={categoryData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={95}
+                    innerRadius={55}
+                    outerRadius={90}
                     paddingAngle={3}
                     dataKey="value"
                   >
@@ -524,19 +440,19 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
               </ResponsiveContainer>
             </div>
 
-            {/* Category breakdown pill list */}
-            <div className="flex w-full flex-col justify-center space-y-2 overflow-y-auto sm:w-64">
+            {/* List of categories with amounts & progress */}
+            <div className="flex w-full flex-col justify-center space-y-2 overflow-y-auto md:w-72">
               {categoryData.map((cat) => (
                 <div
                   key={cat.name}
-                  className="flex items-center justify-between rounded-2xl border border-neutral-100 bg-neutral-50 px-3.5 py-2 text-xs dark:border-neutral-800 dark:bg-neutral-800/50"
+                  className="flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-1.5 text-xs dark:bg-neutral-800/50"
                 >
                   <div className="flex items-center gap-2">
                     <span
-                      className="h-3 w-3 shrink-0 rounded-full"
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
                       style={{ backgroundColor: cat.color }}
                     />
-                    <span className="max-w-27.5 truncate font-semibold text-neutral-900 dark:text-white">
+                    <span className="font-semibold text-neutral-800 dark:text-neutral-200">
                       {cat.name}
                     </span>
                   </div>
@@ -552,9 +468,9 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
               ))}
             </div>
           </div>
-        ) : activeTab === 'modes' ? (
+        ) : (
           /* Payment Modes Donut & Breakdown */
-          <div className="flex h-full flex-col items-center gap-6 sm:flex-row">
+          <div className="flex h-full flex-col items-center gap-6 md:flex-row">
             <div className="h-full flex-1">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -562,8 +478,8 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
                     data={paymentModesData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={95}
+                    innerRadius={55}
+                    outerRadius={90}
                     paddingAngle={3}
                     dataKey="value"
                   >
@@ -576,26 +492,30 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
                       />
                     ))}
                   </Pie>
-                  <Tooltip content={<CustomPaymentModeTooltip />} />
+                  <Tooltip content={<CustomModeTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
 
-            {/* Payment mode card list */}
-            <div className="flex w-full flex-col justify-center space-y-2 overflow-y-auto sm:w-64">
+            {/* List of payment modes */}
+            <div className="flex w-full flex-col justify-center space-y-2 overflow-y-auto md:w-72">
               {paymentModesData.map((mode) => (
                 <div
                   key={mode.name}
-                  className="flex items-center justify-between rounded-2xl border border-neutral-100 bg-neutral-50 px-3.5 py-2.5 text-xs dark:border-neutral-800 dark:bg-neutral-800/50"
+                  className="flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-1.5 text-xs dark:bg-neutral-800/50"
                 >
                   <div className="flex items-center gap-2">
                     <span
-                      className="h-3 w-3 shrink-0 rounded-full"
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
                       style={{ backgroundColor: mode.color }}
                     />
                     <div>
-                      <p className="font-semibold text-neutral-900 dark:text-white">{mode.name}</p>
-                      <p className="text-[10px] text-neutral-500">{mode.count} txns</p>
+                      <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                        {mode.name}
+                      </span>
+                      <span className="ml-1.5 text-[10px] text-neutral-400">
+                        ({mode.count} txns)
+                      </span>
                     </div>
                   </div>
                   <div className="text-right">
@@ -610,38 +530,6 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
               ))}
             </div>
           </div>
-        ) : (
-          /* Multi-Month Comparison Bar Chart */
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={monthlyData} margin={{ top: 15, right: 15, left: 0, bottom: 5 }}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}
-              />
-              <XAxis
-                dataKey="label"
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: isDark ? '#737373' : '#a3a3a3', fontSize: 11 }}
-              />
-              <YAxis
-                width={48}
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: isDark ? '#737373' : '#a3a3a3', fontSize: 11 }}
-                tickFormatter={(val) => `₹${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`}
-              />
-              <Tooltip content={<CustomMonthlyTooltip />} />
-              <Bar
-                dataKey="regular"
-                stackId="a"
-                fill={isDark ? '#3b82f6' : '#2563eb'}
-                radius={[0, 0, 0, 0]}
-              />
-              <Bar dataKey="emi" stackId="a" fill="#a855f7" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
         )}
       </div>
 
@@ -673,18 +561,6 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
         )}
         {activeTab === 'modes' && (
           <span>Tracking spending share by payment method (UPI, Card, Cash, NetBanking)</span>
-        )}
-        {activeTab === 'monthly' && (
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-blue-500" />
-              <span>Regular Expenses</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-purple-500" />
-              <span>EMI Installments</span>
-            </span>
-          </div>
         )}
       </div>
     </div>
