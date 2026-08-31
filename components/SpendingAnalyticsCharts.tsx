@@ -295,61 +295,61 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
   const hasData = currentMonthExpenses.length > 0;
 
   return (
-    <div className="glass-panel relative overflow-hidden rounded-3xl p-6">
+    <div className="glass-panel relative overflow-hidden rounded-2xl p-4 sm:rounded-3xl sm:p-6">
       {/* Header & Single-Row Tabs */}
-      <div className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+      <div className="mb-4 flex flex-col justify-between gap-3 sm:mb-6 sm:gap-4 lg:flex-row lg:items-center">
         <div>
-          <h2 className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
+          <h2 className="text-base font-black tracking-tight text-slate-900 sm:text-lg dark:text-white">
             Spending Analytics & Visuals
           </h2>
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+          <p className="text-[11px] font-medium text-slate-500 sm:text-xs dark:text-slate-400">
             Interactive breakdown of daily velocity, categories, and payment methods for this month
           </p>
         </div>
 
-        {/* Tab switcher - clean horizontal layout */}
-        <div className="flex items-center gap-1 overflow-x-auto rounded-2xl border border-slate-200/80 bg-slate-100/80 p-1 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-800/60">
+        {/* Tab switcher - clean horizontal swipeable layout */}
+        <div className="no-scrollbar flex items-center gap-1 overflow-x-auto rounded-xl border border-slate-200/80 bg-slate-100/80 p-1 backdrop-blur-md sm:rounded-2xl dark:border-slate-800/80 dark:bg-slate-800/60">
           <button
             onClick={() => setActiveTab('daily')}
-            className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all ${
+            className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all sm:rounded-xl sm:px-3.5 ${
               activeTab === 'daily'
                 ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-700 dark:text-white'
                 : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
             }`}
           >
-            <TrendingUp size={14} />
+            <TrendingUp size={13} className="sm:size-[14px]" />
             <span>Daily Velocity</span>
           </button>
           <button
             onClick={() => setActiveTab('category')}
-            className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all ${
+            className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all sm:rounded-xl sm:px-3.5 ${
               activeTab === 'category'
                 ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-700 dark:text-white'
                 : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
             }`}
           >
-            <PieIcon size={14} />
+            <PieIcon size={13} className="sm:size-[14px]" />
             <span>Categories</span>
           </button>
           <button
             onClick={() => setActiveTab('modes')}
-            className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold whitespace-nowrap transition-all ${
+            className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all sm:rounded-xl sm:px-3.5 ${
               activeTab === 'modes'
                 ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-700 dark:text-white'
                 : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
             }`}
           >
-            <Wallet size={14} />
+            <Wallet size={13} className="sm:size-[14px]" />
             <span>Payment Modes</span>
           </button>
         </div>
       </div>
 
       {/* Main Chart Canvas */}
-      <div className="h-72 w-full">
+      <div className="w-full">
         {!hasData ? (
-          <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
-            <Calendar className="mb-2 text-slate-400" size={32} />
+          <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 p-6 sm:h-72 dark:border-slate-800">
+            <Calendar className="mb-2 text-slate-400" size={30} />
             <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
               No expenses recorded for this month yet
             </p>
@@ -359,84 +359,90 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
           </div>
         ) : activeTab === 'daily' ? (
           /* Daily Cumulative & Bar Chart */
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={dailyData} margin={{ top: 15, right: 15, left: 0, bottom: 5 }}>
-              <defs>
-                <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="0%"
-                    stopColor={isDark ? '#818cf8' : '#6366f1'}
-                    stopOpacity={isDark ? 0.45 : 0.3}
-                  />
-                  <stop
-                    offset="50%"
-                    stopColor={isDark ? '#6366f1' : '#4f46e5'}
-                    stopOpacity={isDark ? 0.2 : 0.1}
-                  />
-                  <stop offset="100%" stopColor={isDark ? '#6366f1' : '#4f46e5'} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}
-              />
-              <XAxis
-                dataKey="day"
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 11 }}
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                width={48}
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 11 }}
-                tickFormatter={(val) => `₹${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`}
-              />
-              <Tooltip content={<CustomDailyTooltip />} />
-              {currentBudget > 0 && (
-                <ReferenceLine
-                  y={currentBudget}
-                  stroke="#f43f5e"
-                  strokeDasharray="4 4"
-                  label={{
-                    value: `Budget: ${formatINR(currentBudget)}`,
-                    fill: '#f43f5e',
-                    fontSize: 10,
-                    position: 'top',
-                  }}
+          <div className="h-64 w-full sm:h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={dailyData} margin={{ top: 15, right: 10, left: -5, bottom: 5 }}>
+                <defs>
+                  <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="0%"
+                      stopColor={isDark ? '#818cf8' : '#6366f1'}
+                      stopOpacity={isDark ? 0.45 : 0.3}
+                    />
+                    <stop
+                      offset="50%"
+                      stopColor={isDark ? '#6366f1' : '#4f46e5'}
+                      stopOpacity={isDark ? 0.2 : 0.1}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor={isDark ? '#6366f1' : '#4f46e5'}
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}
                 />
-              )}
-              <Area
-                type="monotone"
-                dataKey="cumulativeSpend"
-                stroke={isDark ? '#818cf8' : '#4f46e5'}
-                strokeWidth={2.5}
-                fillOpacity={1}
-                fill="url(#spendGradient)"
-              />
-              <Bar
-                dataKey="dailySpend"
-                fill={isDark ? '#a855f7' : '#8b5cf6'}
-                opacity={0.65}
-                radius={[4, 4, 0, 0]}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+                <XAxis
+                  dataKey="day"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 10 }}
+                  interval="preserveStartEnd"
+                />
+                <YAxis
+                  width={40}
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 10 }}
+                  tickFormatter={(val) => `₹${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`}
+                />
+                <Tooltip content={<CustomDailyTooltip />} />
+                {currentBudget > 0 && (
+                  <ReferenceLine
+                    y={currentBudget}
+                    stroke="#f43f5e"
+                    strokeDasharray="4 4"
+                    label={{
+                      value: `Budget: ${formatINR(currentBudget)}`,
+                      fill: '#f43f5e',
+                      fontSize: 10,
+                      position: 'top',
+                    }}
+                  />
+                )}
+                <Area
+                  type="monotone"
+                  dataKey="cumulativeSpend"
+                  stroke={isDark ? '#818cf8' : '#4f46e5'}
+                  strokeWidth={2.5}
+                  fillOpacity={1}
+                  fill="url(#spendGradient)"
+                />
+                <Bar
+                  dataKey="dailySpend"
+                  fill={isDark ? '#a855f7' : '#8b5cf6'}
+                  opacity={0.65}
+                  radius={[4, 4, 0, 0]}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         ) : activeTab === 'category' ? (
           /* Category Donut & Share List */
-          <div className="flex h-full flex-col items-center gap-6 md:flex-row">
-            <div className="h-full flex-1">
+          <div className="flex flex-col items-center gap-4 sm:gap-6 md:h-72 md:flex-row">
+            <div className="h-56 w-full md:h-full md:flex-1">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={categoryData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={55}
-                    outerRadius={90}
+                    innerRadius={50}
+                    outerRadius={85}
                     paddingAngle={3}
                     dataKey="value"
                   >
@@ -455,26 +461,26 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
             </div>
 
             {/* List of categories with amounts & progress */}
-            <div className="flex w-full flex-col justify-center space-y-2 overflow-y-auto md:w-72">
+            <div className="custom-scrollbar flex max-h-52 w-full flex-col justify-center space-y-1.5 overflow-y-auto md:max-h-full md:w-72 md:space-y-2">
               {categoryData.map((cat) => (
                 <div
                   key={cat.name}
-                  className="flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-1.5 text-xs dark:bg-neutral-800/50"
+                  className="flex items-center justify-between rounded-xl bg-slate-100/80 px-3 py-1.5 text-xs backdrop-blur-xs dark:bg-slate-800/50"
                 >
                   <div className="flex items-center gap-2">
                     <span
                       className="h-2.5 w-2.5 shrink-0 rounded-full"
                       style={{ backgroundColor: cat.color }}
                     />
-                    <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">
                       {cat.name}
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="font-bold text-neutral-900 dark:text-white">
+                    <span className="font-bold text-slate-900 dark:text-white">
                       {formatINR(cat.value)}
                     </span>
-                    <span className="ml-1.5 text-[10px] font-medium text-neutral-500">
+                    <span className="ml-1.5 text-[10px] font-medium text-slate-500">
                       ({cat.percentage}%)
                     </span>
                   </div>
@@ -484,16 +490,16 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
           </div>
         ) : (
           /* Payment Modes Donut & Breakdown */
-          <div className="flex h-full flex-col items-center gap-6 md:flex-row">
-            <div className="h-full flex-1">
+          <div className="flex flex-col items-center gap-4 sm:gap-6 md:h-72 md:flex-row">
+            <div className="h-56 w-full md:h-full md:flex-1">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={paymentModesData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={55}
-                    outerRadius={90}
+                    innerRadius={50}
+                    outerRadius={85}
                     paddingAngle={3}
                     dataKey="value"
                   >
@@ -512,11 +518,11 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
             </div>
 
             {/* List of payment modes */}
-            <div className="flex w-full flex-col justify-center space-y-2 overflow-y-auto md:w-72">
+            <div className="custom-scrollbar flex max-h-52 w-full flex-col justify-center space-y-1.5 overflow-y-auto md:max-h-full md:w-72 md:space-y-2">
               {paymentModesData.map((mode) => (
                 <div
                   key={mode.name}
-                  className="flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-1.5 text-xs dark:bg-neutral-800/50"
+                  className="flex items-center justify-between rounded-xl bg-slate-100/80 px-3 py-1.5 text-xs backdrop-blur-xs dark:bg-slate-800/50"
                 >
                   <div className="flex items-center gap-2">
                     <span
@@ -524,19 +530,17 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
                       style={{ backgroundColor: mode.color }}
                     />
                     <div>
-                      <span className="font-semibold text-neutral-800 dark:text-neutral-200">
+                      <span className="font-semibold text-slate-800 dark:text-slate-200">
                         {mode.name}
                       </span>
-                      <span className="ml-1.5 text-[10px] text-neutral-400">
-                        ({mode.count} txns)
-                      </span>
+                      <span className="ml-1.5 text-[10px] text-slate-400">({mode.count} txns)</span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="font-bold text-neutral-900 dark:text-white">
+                    <span className="font-bold text-slate-900 dark:text-white">
                       {formatINR(mode.value)}
                     </span>
-                    <span className="ml-1.5 text-[10px] font-medium text-neutral-500">
+                    <span className="ml-1.5 text-[10px] font-medium text-slate-500">
                       ({mode.percentage}%)
                     </span>
                   </div>
@@ -548,9 +552,9 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
       </div>
 
       {/* Chart Footer Indicator */}
-      <div className="mt-4 flex flex-wrap items-center justify-between border-t border-slate-200/80 pt-3 text-[11px] text-slate-500 dark:border-slate-800 dark:text-slate-400">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/80 pt-3 text-[10px] text-slate-500 sm:text-[11px] dark:border-slate-800 dark:text-slate-400">
         {activeTab === 'daily' && (
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             <span className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-indigo-500 shadow-xs shadow-indigo-500/50" />
               <span className="font-medium text-slate-700 dark:text-slate-300">
@@ -559,15 +563,13 @@ export default function SpendingAnalyticsCharts({ currentMonth }: SpendingAnalyt
             </span>
             <span className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-purple-500 shadow-xs shadow-purple-500/50" />
-              <span className="font-medium text-slate-700 dark:text-slate-300">
-                Daily Transaction Spikes
-              </span>
+              <span className="font-medium text-slate-700 dark:text-slate-300">Daily Spikes</span>
             </span>
             {currentBudget > 0 && (
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-rose-500 shadow-xs shadow-rose-500/50" />
                 <span className="font-medium text-slate-700 dark:text-slate-300">
-                  Monthly Budget Target
+                  Target: {formatINR(currentBudget)}
                 </span>
               </span>
             )}

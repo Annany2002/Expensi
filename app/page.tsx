@@ -40,29 +40,97 @@ import {
 function Skeleton({ className }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded-xl bg-neutral-200 dark:bg-neutral-800/80 ${className ?? ''}`}
+      className={`animate-pulse rounded-xl bg-slate-200/70 dark:bg-slate-800/60 ${className ?? ''}`}
     />
   );
 }
 
 function PageSkeleton() {
   return (
-    <main className="mx-auto min-h-screen w-full max-w-400 space-y-8 bg-neutral-50 px-4 py-4 text-neutral-900 md:px-8 md:py-6 lg:px-10 dark:bg-black dark:text-white">
-      <div className="flex items-center justify-between">
-        <Skeleton className="h-9 w-40" />
-        <div className="flex gap-2">
-          <Skeleton className="h-10 w-44 rounded-2xl" />
+    <main className="mx-auto min-h-screen w-full max-w-400 space-y-5 px-3 py-3 text-slate-900 sm:space-y-6 sm:px-6 sm:py-5 md:px-8 md:py-6 lg:px-10 dark:text-white">
+      {/* Header Skeleton */}
+      <div className="glass-panel flex flex-col justify-between gap-3 rounded-2xl p-3.5 shadow-xl sm:rounded-3xl sm:p-4 md:flex-row md:items-center">
+        <div className="flex items-center gap-3">
           <Skeleton className="h-10 w-10 rounded-2xl" />
+          <div className="space-y-1.5">
+            <Skeleton className="h-5 w-28 rounded-lg" />
+            <Skeleton className="h-3 w-44 rounded-md" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-9 w-32 rounded-2xl" />
+          <Skeleton className="h-9 w-9 rounded-2xl" />
+          <Skeleton className="h-9 w-9 rounded-2xl" />
+          <Skeleton className="h-9 w-9 rounded-2xl" />
         </div>
       </div>
+
+      {/* Hero Cards Skeleton */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Skeleton className="h-48 rounded-3xl md:col-span-2" />
+        <div className="glass-panel space-y-4 rounded-3xl p-5 sm:p-6 md:col-span-2">
+          <div className="flex items-start justify-between">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28 rounded-md" />
+              <Skeleton className="h-9 w-44 rounded-xl" />
+            </div>
+            <Skeleton className="h-8 w-24 rounded-full" />
+          </div>
+          <Skeleton className="h-3 w-full rounded-full" />
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            <Skeleton className="h-14 rounded-2xl" />
+            <Skeleton className="h-14 rounded-2xl" />
+          </div>
+        </div>
+
         <div className="flex flex-col gap-4">
-          <Skeleton className="h-22 rounded-3xl" />
-          <Skeleton className="h-22 rounded-3xl" />
+          <div className="glass-panel flex-1 space-y-3 rounded-3xl p-5">
+            <Skeleton className="h-4 w-32 rounded-md" />
+            <Skeleton className="h-8 w-24 rounded-xl" />
+            <Skeleton className="h-2 w-full rounded-full" />
+          </div>
+          <div className="glass-panel flex-1 space-y-3 rounded-3xl p-5">
+            <Skeleton className="h-4 w-32 rounded-md" />
+            <Skeleton className="h-8 w-24 rounded-xl" />
+            <Skeleton className="h-2 w-full rounded-full" />
+          </div>
         </div>
       </div>
-      <Skeleton className="h-96 rounded-3xl" />
+
+      {/* Mini Category Pills Carousel Skeleton */}
+      <div className="flex items-center gap-2 overflow-hidden py-1">
+        <Skeleton className="h-8 w-24 shrink-0 rounded-full" />
+        <Skeleton className="h-8 w-28 shrink-0 rounded-full" />
+        <Skeleton className="h-8 w-20 shrink-0 rounded-full" />
+        <Skeleton className="h-8 w-32 shrink-0 rounded-full" />
+        <Skeleton className="h-8 w-24 shrink-0 rounded-full" />
+        <Skeleton className="h-8 w-28 shrink-0 rounded-full" />
+      </div>
+
+      {/* Spending Analytics Chart Skeleton */}
+      <div className="glass-panel space-y-4 rounded-3xl p-5 sm:p-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1.5">
+            <Skeleton className="h-5 w-48 rounded-lg" />
+            <Skeleton className="h-3 w-64 rounded-md" />
+          </div>
+          <Skeleton className="h-8 w-36 rounded-2xl" />
+        </div>
+        <Skeleton className="h-72 w-full rounded-2xl" />
+      </div>
+
+      {/* Bento Grid Category Cards Skeleton */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="glass-panel space-y-3 rounded-2xl p-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-8 w-8 rounded-xl" />
+              <Skeleton className="h-4 w-16 rounded-md" />
+            </div>
+            <Skeleton className="h-5 w-32 rounded-md" />
+            <Skeleton className="h-2.5 w-full rounded-full" />
+          </div>
+        ))}
+      </div>
     </main>
   );
 }
@@ -72,6 +140,7 @@ export default function Home() {
   const {
     user,
     authLoading,
+    initialLoading,
     signOut,
     theme,
     toggleTheme,
@@ -185,7 +254,7 @@ export default function Home() {
     };
   }, [effectiveBudget, monthlyBudget, selectedMonth, totalSpentThisMonth]);
 
-  if (authLoading || (!user && !loading)) {
+  if (authLoading || initialLoading || (!user && !loading)) {
     return <PageSkeleton />;
   }
 
@@ -280,45 +349,105 @@ export default function Home() {
   };
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-400 space-y-6 px-4 py-4 text-slate-900 md:px-8 md:py-6 lg:px-10 dark:text-white">
+    <main className="mx-auto min-h-screen w-full max-w-400 space-y-5 px-3 py-3 text-slate-900 sm:space-y-6 sm:px-6 sm:py-5 md:px-8 md:py-6 lg:px-10 dark:text-white">
       {/* Top Navbar Glass Toolbar */}
-      <header className="glass-panel relative z-30 flex flex-col justify-between gap-4 rounded-3xl p-4 shadow-xl sm:flex-row sm:items-center">
-        {/* Brand & Subtitle */}
-        <div className="flex items-center gap-3">
-          <Image
-            src="/logo.svg"
-            alt="Expensi Logo"
-            width={40}
-            height={40}
-            priority
-            className="rounded-2xl shadow-md shadow-indigo-500/25"
-          />
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
-                Expensi
-              </h1>
-              <span className="rounded-full border border-indigo-200/80 bg-indigo-50/80 px-2 py-0.5 text-[10px] font-bold text-indigo-700 backdrop-blur-xs dark:border-indigo-900/60 dark:bg-indigo-950/60 dark:text-indigo-300">
-                v2.0
-              </span>
+      <header className="glass-panel relative z-30 flex flex-col justify-between gap-3 rounded-2xl p-3.5 shadow-xl sm:rounded-3xl sm:p-4 md:flex-row md:items-center">
+        {/* Tier 1: Brand & User Actions on small mobile, or Left Brand on desktop */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <Image
+              src="/logo.svg"
+              alt="Expensi Logo"
+              width={36}
+              height={36}
+              priority
+              className="rounded-xl shadow-md shadow-indigo-500/25 sm:h-10 sm:w-10 sm:rounded-2xl"
+            />
+            <div>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h1 className="text-lg font-black tracking-tight text-slate-900 sm:text-xl dark:text-white">
+                  Expensi
+                </h1>
+                <span className="shrink-0 rounded-full border border-indigo-200/80 bg-indigo-50/80 px-2 py-0.5 text-[9px] font-bold whitespace-nowrap text-indigo-700 backdrop-blur-xs sm:text-[10px] dark:border-indigo-900/60 dark:bg-indigo-950/60 dark:text-indigo-300">
+                  v2.0
+                </span>
+              </div>
+              <p className="text-[10px] font-medium text-slate-500 sm:text-[11px] dark:text-slate-400">
+                Multi-Month Expense & EMI Ledger
+              </p>
             </div>
-            <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-              Multi-Month Expense & EMI Ledger
-            </p>
+          </div>
+
+          {/* User actions on small screens (< md) */}
+          <div className="flex items-center gap-1.5 md:hidden">
+            <button
+              onClick={toggleTheme}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/80 bg-white/70 text-slate-600 shadow-2xs backdrop-blur-md transition-all hover:border-slate-300 hover:bg-white hover:text-slate-900 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
+              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+            >
+              {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+            </button>
+
+            {/* Export Menu trigger */}
+            <div className="relative">
+              <button
+                onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/80 bg-white/70 text-slate-600 shadow-2xs backdrop-blur-md transition-all hover:border-slate-300 hover:bg-white hover:text-slate-900 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
+                title="Export Data"
+              >
+                <Download size={14} />
+              </button>
+
+              {isExportMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsExportMenuOpen(false)} />
+                  <div className="glass-dropdown animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-60 max-w-[calc(100vw-2rem)] space-y-1 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+                    <button
+                      onClick={handleExportMonthCSV}
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/90 dark:hover:text-white"
+                    >
+                      <Download size={13} className="text-indigo-500" /> Export {monthTitle} (.csv)
+                    </button>
+                    <button
+                      onClick={handleExportAllCSV}
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/90 dark:hover:text-white"
+                    >
+                      <Download size={13} className="text-purple-500" /> Export All Expenses (.csv)
+                    </button>
+                    <button
+                      onClick={handleExportJSON}
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/90 dark:hover:text-white"
+                    >
+                      <Download size={13} className="text-emerald-500" /> Full JSON Backup (.json)
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {user && (
+              <button
+                onClick={handleSignOut}
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/80 bg-white/70 text-slate-400 shadow-2xs backdrop-blur-md transition-colors hover:bg-rose-50 hover:text-rose-600 dark:border-slate-800/80 dark:bg-slate-800/60 dark:hover:bg-rose-950/50 dark:hover:text-rose-400"
+                title="Sign Out"
+              >
+                <LogOut size={14} />
+              </button>
+            )}
           </div>
         </div>
 
         {/* Toolbar Controls */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           {/* Quick Search Pill */}
           <button
             onClick={() => setIsSearchModalOpen(true)}
-            className="flex h-10 items-center gap-2 rounded-2xl border border-slate-200/80 bg-white/70 px-3.5 text-xs font-semibold text-slate-700 shadow-2xs backdrop-blur-md transition-all hover:border-slate-300 hover:bg-white hover:text-slate-900 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
+            className="flex h-9 items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white/70 px-2.5 text-xs font-semibold text-slate-700 shadow-2xs backdrop-blur-md transition-all hover:border-slate-300 hover:bg-white hover:text-slate-900 sm:h-10 sm:gap-2 sm:rounded-2xl sm:px-3.5 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
             title="Search expenses (Cmd+K)"
           >
             <Search size={14} className="text-slate-400" />
-            <span className="hidden md:inline">Search</span>
-            <kbd className="rounded border border-slate-200 bg-white/90 px-1.5 py-0.5 font-mono text-[10px] font-bold text-slate-500 shadow-2xs dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-400">
+            <span className="text-[11px] font-bold sm:text-xs">Search</span>
+            <kbd className="hidden rounded border border-slate-200 bg-white/90 px-1.5 py-0.5 font-mono text-[10px] font-bold text-slate-500 shadow-2xs md:inline-block dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-400">
               ⌘K
             </kbd>
           </button>
@@ -326,45 +455,45 @@ export default function Home() {
           {/* Dedicated All-Time Analytics Page Button */}
           <Link
             href="/analytics"
-            className="flex h-10 items-center gap-1.5 rounded-2xl border border-slate-200/80 bg-white/70 px-3.5 text-xs font-bold text-slate-700 shadow-2xs backdrop-blur-md transition-all hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-indigo-700/60 dark:hover:bg-slate-800 dark:hover:text-indigo-400"
+            className="flex h-9 items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white/70 px-2.5 text-xs font-bold text-slate-700 shadow-2xs backdrop-blur-md transition-all hover:border-indigo-300 hover:bg-white hover:text-indigo-600 sm:h-10 sm:rounded-2xl sm:px-3.5 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-indigo-700/60 dark:hover:bg-slate-800 dark:hover:text-indigo-400"
             title="Open Dedicated All-Time Analytics Page"
           >
             <BarChart3 size={14} className="text-indigo-500" />
-            <span>Analytics</span>
+            <span className="text-[11px] sm:text-xs">Analytics</span>
           </Link>
 
           {/* Month Navigator Group */}
-          <div className="relative flex h-10 items-center rounded-2xl border border-slate-200/80 bg-white/70 p-1 shadow-2xs backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-800/60">
+          <div className="relative flex h-9 items-center rounded-xl border border-slate-200/80 bg-white/70 p-0.5 shadow-2xs backdrop-blur-md sm:h-10 sm:rounded-2xl sm:p-1 dark:border-slate-800/80 dark:bg-slate-800/60">
             <button
               onClick={goToPreviousMonth}
-              className="rounded-xl p-1.5 text-slate-600 transition-all hover:bg-white hover:text-slate-900 hover:shadow-2xs dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
+              className="rounded-lg p-1 text-slate-600 transition-all hover:bg-white hover:text-slate-900 hover:shadow-2xs sm:rounded-xl sm:p-1.5 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
               title="Previous Month"
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={15} />
             </button>
 
             <button
               onClick={() => setIsMonthDropdownOpen(!isMonthDropdownOpen)}
-              className="flex items-center gap-1.5 rounded-xl px-3 py-1 text-xs font-bold text-slate-900 transition-all hover:bg-white hover:shadow-2xs dark:text-white dark:hover:bg-slate-700"
+              className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-slate-900 transition-all hover:bg-white hover:shadow-2xs sm:gap-1.5 sm:rounded-xl sm:px-3 dark:text-white dark:hover:bg-slate-700"
             >
-              <Calendar size={13} className="text-indigo-500" />
-              <span>{monthTitle}</span>
-              <ChevronDown size={12} className="text-slate-400" />
+              <Calendar size={12} className="text-indigo-500 sm:size-3.25" />
+              <span className="text-[11px] whitespace-nowrap sm:text-xs">{monthTitle}</span>
+              <ChevronDown size={11} className="text-slate-400 sm:size-3" />
             </button>
 
             <button
               onClick={goToNextMonth}
-              className="rounded-xl p-1.5 text-slate-600 transition-all hover:bg-white hover:text-slate-900 hover:shadow-2xs dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
+              className="rounded-lg p-1 text-slate-600 transition-all hover:bg-white hover:text-slate-900 hover:shadow-2xs sm:rounded-xl sm:p-1.5 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
               title="Next Month"
             >
-              <ChevronRight size={16} />
+              <ChevronRight size={15} />
             </button>
 
             {/* Quick Month Select Dropdown Menu */}
             {isMonthDropdownOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setIsMonthDropdownOpen(false)} />
-                <div className="glass-dropdown animate-in fade-in zoom-in-95 absolute top-12 left-0 z-50 w-60 space-y-1 rounded-2xl border border-slate-200 bg-white p-2.5 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+                <div className="glass-dropdown animate-in fade-in zoom-in-95 absolute top-11 right-0 z-50 w-60 max-w-[calc(100vw-2rem)] space-y-1 rounded-2xl border border-slate-200 bg-white p-2.5 shadow-2xl sm:top-12 dark:border-slate-800 dark:bg-slate-900">
                   <p className="px-2.5 py-1 text-[10px] font-extrabold tracking-wider text-slate-400 uppercase dark:text-slate-500">
                     Jump to Recorded Month
                   </p>
@@ -416,91 +545,92 @@ export default function Home() {
           {!isCurrentMonthViewed && (
             <button
               onClick={goToCurrentMonth}
-              className="flex h-10 items-center gap-1 rounded-2xl border border-slate-200/80 bg-white/70 px-3 text-xs font-bold text-slate-700 shadow-2xs backdrop-blur-md transition-all hover:border-slate-300 hover:bg-white hover:text-slate-900 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
+              className="flex h-9 items-center gap-1 rounded-xl border border-slate-200/80 bg-white/70 px-2.5 text-xs font-bold text-slate-700 shadow-2xs backdrop-blur-md transition-all hover:border-slate-300 hover:bg-white hover:text-slate-900 sm:h-10 sm:rounded-2xl sm:px-3 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
               title="Jump to Current Month"
             >
               <RotateCcw size={13} />
-              <span className="hidden sm:inline">Today</span>
+              <span className="text-[11px] sm:text-xs">Today</span>
             </button>
           )}
 
-          {/* Action Group: Export & Theme */}
-          <div className="relative">
+          {/* Desktop Only Action Group: Export, Theme & User Profile */}
+          <div className="hidden items-center gap-2 md:flex">
+            <div className="relative">
+              <button
+                onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
+                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200/80 bg-white/70 text-slate-600 shadow-2xs backdrop-blur-md transition-all hover:border-slate-300 hover:bg-white hover:text-slate-900 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
+                title="Export Data"
+              >
+                <Download size={15} />
+              </button>
+
+              {isExportMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsExportMenuOpen(false)} />
+                  <div className="glass-dropdown animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-60 max-w-[calc(100vw-2rem)] space-y-1 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+                    <button
+                      onClick={handleExportMonthCSV}
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/90 dark:hover:text-white"
+                    >
+                      <Download size={13} className="text-indigo-500" /> Export {monthTitle} (.csv)
+                    </button>
+                    <button
+                      onClick={handleExportAllCSV}
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/90 dark:hover:text-white"
+                    >
+                      <Download size={13} className="text-purple-500" /> Export All Expenses (.csv)
+                    </button>
+                    <button
+                      onClick={handleExportJSON}
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/90 dark:hover:text-white"
+                    >
+                      <Download size={13} className="text-emerald-500" /> Full JSON Backup (.json)
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
             <button
-              onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
+              onClick={toggleTheme}
               className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200/80 bg-white/70 text-slate-600 shadow-2xs backdrop-blur-md transition-all hover:border-slate-300 hover:bg-white hover:text-slate-900 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
-              title="Export Data"
+              title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
             >
-              <Download size={15} />
+              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
             </button>
 
-            {isExportMenuOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setIsExportMenuOpen(false)} />
-                <div className="glass-dropdown animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-60 space-y-1 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
-                  <button
-                    onClick={handleExportMonthCSV}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/90 dark:hover:text-white"
-                  >
-                    <Download size={13} className="text-indigo-500" /> Export {monthTitle} (.csv)
-                  </button>
-                  <button
-                    onClick={handleExportAllCSV}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/90 dark:hover:text-white"
-                  >
-                    <Download size={13} className="text-purple-500" /> Export All Expenses (.csv)
-                  </button>
-                  <button
-                    onClick={handleExportJSON}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/90 dark:hover:text-white"
-                  >
-                    <Download size={13} className="text-emerald-500" /> Full JSON Backup (.json)
-                  </button>
+            {user && (
+              <div className="flex h-10 items-center gap-1 rounded-2xl border border-slate-200/80 bg-white/70 p-1 shadow-2xs backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-800/60">
+                <div
+                  title={user.email}
+                  className="flex items-center gap-1.5 px-2 text-xs font-bold text-slate-700 dark:text-slate-300"
+                >
+                  <UserIcon size={13} className="text-indigo-500" />
+                  <span className="max-w-28 truncate">{user.name || user.email.split('@')[0]}</span>
                 </div>
-              </>
+                <button
+                  onClick={handleSignOut}
+                  className="rounded-xl p-1.5 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/50 dark:hover:text-rose-400"
+                  title="Sign Out"
+                >
+                  <LogOut size={15} />
+                </button>
+              </div>
             )}
           </div>
-
-          <button
-            onClick={toggleTheme}
-            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200/80 bg-white/70 text-slate-600 shadow-2xs backdrop-blur-md transition-all hover:border-slate-300 hover:bg-white hover:text-slate-900 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
-            title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
-          >
-            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
-          </button>
-
-          {/* User Profile & Sign Out */}
-          {user && (
-            <div className="flex h-10 items-center gap-1 rounded-2xl border border-slate-200/80 bg-white/70 p-1 shadow-2xs backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-800/60">
-              <div
-                title={user.email}
-                className="hidden items-center gap-1.5 px-2 text-xs font-bold text-slate-700 md:flex dark:text-slate-300"
-              >
-                <UserIcon size={13} className="text-indigo-500" />
-                <span className="max-w-28 truncate">{user.name || user.email.split('@')[0]}</span>
-              </div>
-              <button
-                onClick={handleSignOut}
-                className="rounded-xl p-1.5 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/50 dark:hover:text-rose-400"
-                title="Sign Out"
-              >
-                <LogOut size={15} />
-              </button>
-            </div>
-          )}
         </div>
       </header>
 
       {/* Metrics Bento Grid */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-12">
         {/* Main Hero Card: Month Spending, Limit, Surplus Rollover, and Runway Forecast (8 cols) */}
-        <div className="glass-panel relative flex flex-col justify-between overflow-hidden rounded-3xl p-6 lg:col-span-8">
+        <div className="glass-panel relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-6 lg:col-span-8">
           {/* Ambient Card Background Glow */}
           <div className="pointer-events-none absolute -top-24 -right-24 h-56 w-56 rounded-full bg-indigo-500/10 blur-3xl dark:bg-indigo-500/15" />
 
           <div>
             {/* Header / Limit Title & Settings */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
                   {monthTitle} Spending
@@ -519,7 +649,7 @@ export default function Home() {
 
               {hasBudget && (
                 <div className="flex items-center gap-2">
-                  <span className="rounded-full border border-slate-200/90 bg-white/80 px-3 py-1 text-xs font-bold text-slate-700 shadow-2xs backdrop-blur-md dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-200">
+                  <span className="rounded-full border border-slate-200/90 bg-white/80 px-2.5 py-0.5 text-[11px] font-bold text-slate-700 shadow-2xs backdrop-blur-md sm:px-3 sm:py-1 sm:text-xs dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-200">
                     Budget: {formatINR(activeBudget || 0)}
                   </span>
                 </div>
@@ -527,9 +657,9 @@ export default function Home() {
             </div>
 
             {/* Total Spent Amount & Subtitle */}
-            <div className="mt-3 flex flex-wrap items-baseline gap-3">
+            <div className="mt-2.5 flex flex-wrap items-baseline gap-2 sm:mt-3 sm:gap-3">
               <h2
-                className={`text-4xl font-black tracking-tight sm:text-5xl ${isOverBudget ? 'text-rose-600 dark:text-rose-400' : 'bg-linear-to-r from-slate-950 via-slate-800 to-slate-700 bg-clip-text text-transparent dark:from-white dark:via-slate-100 dark:to-slate-300'}`}
+                className={`text-3xl font-black tracking-tight sm:text-5xl ${isOverBudget ? 'text-rose-600 dark:text-rose-400' : 'bg-linear-to-r from-slate-950 via-slate-800 to-slate-700 bg-clip-text text-transparent dark:from-white dark:via-slate-100 dark:to-slate-300'}`}
               >
                 {formatINR(totalSpentThisMonth)}
               </h2>
@@ -547,7 +677,7 @@ export default function Home() {
 
             {/* Previous Month Surplus Rollover Banner (Feature 3) */}
             {previousMonthSurplus && previousMonthSurplus.surplus > 0 && (
-              <div className="mt-3.5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-indigo-200/80 bg-indigo-50/70 p-3 shadow-2xs backdrop-blur-md dark:border-indigo-900/60 dark:bg-indigo-950/30">
+              <div className="mt-3 flex flex-col justify-between gap-3 rounded-2xl border border-indigo-200/80 bg-indigo-50/70 p-3 shadow-2xs backdrop-blur-md sm:mt-3.5 sm:flex-row sm:items-center dark:border-indigo-900/60 dark:bg-indigo-950/30">
                 <div className="flex items-center gap-2.5">
                   <div className="rounded-xl bg-indigo-100 p-1.5 text-indigo-600 dark:bg-indigo-900/60 dark:text-indigo-400">
                     <Zap size={14} />
@@ -573,7 +703,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={handleToggleRolloverWithToast}
-                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all ${
+                  className={`w-full rounded-xl px-3 py-1.5 text-xs font-bold transition-all sm:w-auto ${
                     enableRollover
                       ? 'bg-indigo-600 text-white shadow-xs hover:bg-indigo-500'
                       : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
@@ -590,13 +720,13 @@ export default function Home() {
             {isEditingBudget ? (
               <form
                 onSubmit={handleUpdateBudget}
-                className="animate-in fade-in space-y-2.5 rounded-2xl border border-slate-200 bg-slate-50/90 p-4 dark:border-slate-700 dark:bg-slate-800/60"
+                className="animate-in fade-in space-y-2.5 rounded-2xl border border-slate-200 bg-slate-50/90 p-3 sm:p-4 dark:border-slate-700 dark:bg-slate-800/60"
               >
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
                   Set Base Monthly Budget (leave empty to clear)
                 </label>
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1">
+                <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+                  <div className="relative min-w-35 flex-1">
                     <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-xs font-bold text-slate-400">
                       ₹
                     </span>
@@ -609,35 +739,37 @@ export default function Home() {
                       autoFocus
                     />
                   </div>
-                  <button
-                    type="submit"
-                    disabled={isSavingBudget}
-                    className="btn-primary p-2.5 text-xs font-bold disabled:opacity-60"
-                    title="Save"
-                  >
-                    {isSavingBudget ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <Check size={14} />
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="submit"
+                      disabled={isSavingBudget}
+                      className="btn-primary p-2.5 text-xs font-bold disabled:opacity-60"
+                      title="Save"
+                    >
+                      {isSavingBudget ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <Check size={14} />
+                      )}
+                    </button>
+                    {hasBaseBudget && (
+                      <button
+                        type="button"
+                        onClick={handleClearBudget}
+                        className="rounded-xl border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-600 transition-colors hover:bg-rose-50 dark:border-rose-900/60 dark:hover:bg-rose-950/40"
+                      >
+                        Clear
+                      </button>
                     )}
-                  </button>
-                  {hasBaseBudget && (
                     <button
                       type="button"
-                      onClick={handleClearBudget}
-                      className="rounded-xl border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-600 transition-colors hover:bg-rose-50 dark:border-rose-900/60 dark:hover:bg-rose-950/40"
+                      onClick={() => setIsEditingBudget(false)}
+                      className="btn-secondary p-2.5 text-xs"
+                      title="Cancel"
                     >
-                      Clear
+                      <X size={14} />
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingBudget(false)}
-                    className="btn-secondary p-2.5 text-xs"
-                    title="Cancel"
-                  >
-                    <X size={14} />
-                  </button>
+                  </div>
                 </div>
               </form>
             ) : hasBudget ? (
@@ -678,7 +810,7 @@ export default function Home() {
 
                 {/* Runway & Daily Pace Assistant Pill */}
                 {runwayStats && (
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white/70 p-3.5 text-xs shadow-2xs backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-800/50">
+                  <div className="mt-3 flex flex-col justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white/70 p-3 text-xs shadow-2xs backdrop-blur-md sm:flex-row sm:items-center sm:p-3.5 dark:border-slate-800/80 dark:bg-slate-800/50">
                     <div className="flex items-center gap-2.5">
                       <div className="rounded-xl bg-indigo-50 p-2 text-indigo-600 shadow-2xs dark:bg-indigo-950/70 dark:text-indigo-400">
                         <Zap size={16} />
@@ -700,7 +832,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 self-start sm:self-auto">
                       {runwayStats.isPaceOver ? (
                         <span className="flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50/90 px-3 py-1 text-[11px] font-bold text-amber-700 shadow-2xs dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-300">
                           <AlertTriangle size={12} />
@@ -751,15 +883,15 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Interactive Category Mini-Chips */}
-            <div className="mt-2.5 flex flex-wrap items-center gap-2">
+            {/* Interactive Category Mini-Chips - horizontal swipeable on mobile, wrapping on desktop */}
+            <div className="no-scrollbar mt-2.5 flex items-center gap-2 overflow-x-auto pb-1 sm:flex-wrap">
               {categories.length === 0 ? (
                 <button
                   onClick={() => {
                     setHubInitialCategoryId(null);
                     setIsCategoryHubOpen(true);
                   }}
-                  className="flex items-center gap-1 rounded-xl border border-dashed border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-500 hover:border-indigo-500 hover:text-indigo-600 dark:border-slate-700 dark:text-slate-400 dark:hover:border-indigo-400 dark:hover:text-indigo-300"
+                  className="flex shrink-0 items-center gap-1 rounded-xl border border-dashed border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-500 hover:border-indigo-500 hover:text-indigo-600 dark:border-slate-700 dark:text-slate-400 dark:hover:border-indigo-400 dark:hover:text-indigo-300"
                 >
                   <Plus size={13} />
                   <span>Create First Category</span>
@@ -773,7 +905,7 @@ export default function Home() {
                         setHubInitialCategoryId(c.id);
                         setIsCategoryHubOpen(true);
                       }}
-                      className="group flex items-center gap-2 rounded-xl border border-slate-200/90 bg-white/70 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs backdrop-blur-md transition-all hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white"
+                      className="group flex shrink-0 items-center gap-2 rounded-xl border border-slate-200/90 bg-white/70 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs backdrop-blur-md transition-all hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white"
                       title={`Click to view ${c.name} transactions & details`}
                     >
                       <span
@@ -791,7 +923,7 @@ export default function Home() {
                       setHubInitialCategoryId(null);
                       setIsCategoryHubOpen(true);
                     }}
-                    className="flex items-center gap-1 rounded-xl border border-slate-200/80 bg-white/50 p-1.5 text-slate-500 hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-700/80 dark:bg-slate-800/40 dark:text-slate-400 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white"
+                    className="flex shrink-0 items-center gap-1 rounded-xl border border-slate-200/80 bg-white/50 p-1.5 text-slate-500 hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-700/80 dark:bg-slate-800/40 dark:text-slate-400 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white"
                     title="Add Category"
                   >
                     <Plus size={14} />
@@ -803,11 +935,11 @@ export default function Home() {
         </div>
 
         {/* Secondary Column: All-Time Spent & Active EMIs / Daily Pace (4 cols) */}
-        <div className="flex flex-col justify-between gap-4 lg:col-span-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-4 lg:grid-cols-1">
           {/* Lifetime Total Spent Card */}
           <Link
             href="/analytics"
-            className="glass-card-interactive group relative flex flex-1 cursor-pointer flex-col justify-between overflow-hidden rounded-3xl p-5"
+            className="glass-card-interactive group relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-5"
             title="Click to view detailed all-time analytics"
           >
             <div className="pointer-events-none absolute -top-10 -right-10 h-28 w-28 rounded-full bg-indigo-500/10 blur-2xl dark:bg-indigo-500/20" />
@@ -835,7 +967,7 @@ export default function Home() {
 
           {/* Dynamic Context Card: Active EMIs or Daily Safe Burn Allowance */}
           {stats.monthEmiTotal > 0 ? (
-            <div className="glass-panel relative flex flex-1 flex-col justify-between overflow-hidden rounded-3xl p-5">
+            <div className="glass-panel relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-5">
               <div className="pointer-events-none absolute -top-10 -right-10 h-28 w-28 rounded-full bg-purple-500/10 blur-2xl dark:bg-purple-500/20" />
               <div className="relative flex items-center justify-between text-slate-500 dark:text-slate-400">
                 <span className="text-[10px] font-bold tracking-wider uppercase">Active EMIs</span>
@@ -854,7 +986,7 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            <div className="glass-panel relative flex flex-1 flex-col justify-between overflow-hidden rounded-3xl p-5">
+            <div className="glass-panel relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-5">
               <div className="pointer-events-none absolute -top-10 -right-10 h-28 w-28 rounded-full bg-emerald-500/10 blur-2xl dark:bg-emerald-500/20" />
               <div className="relative flex items-center justify-between text-slate-500 dark:text-slate-400">
                 <span className="text-[10px] font-bold tracking-wider uppercase">
