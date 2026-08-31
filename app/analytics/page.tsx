@@ -153,7 +153,7 @@ function Skeleton({ className }: { className?: string }) {
 
 function AnalyticsSkeleton() {
   return (
-    <main className="mx-auto min-h-screen w-full max-w-[1600px] space-y-5 px-3 py-3 sm:space-y-6 sm:px-6 sm:py-5 md:px-8 md:py-6 lg:px-10">
+    <main className="mx-auto min-h-screen w-full max-w-400 space-y-5 px-3 py-3 sm:space-y-6 sm:px-6 sm:py-5 md:px-8 md:py-6 lg:px-10">
       {/* Top Navbar */}
       <div className="glass-panel flex flex-col justify-between gap-3 rounded-2xl p-3.5 shadow-xl sm:rounded-3xl sm:p-4 md:flex-row md:items-center">
         <div className="flex items-center gap-3">
@@ -537,7 +537,7 @@ export default function AnalyticsPage() {
                 Total Outflow
               </span>
               <div className="rounded-lg bg-emerald-50 p-1 text-emerald-600 sm:rounded-xl sm:p-1.5 dark:bg-emerald-950/60 dark:text-emerald-400">
-                <TrendingUp size={13} className="sm:size-[14px]" />
+                <TrendingUp size={13} className="sm:size-3.5" />
               </div>
             </div>
             <div className="mt-2 sm:mt-3">
@@ -557,7 +557,7 @@ export default function AnalyticsPage() {
                 Active Months
               </span>
               <div className="rounded-lg bg-blue-50 p-1 text-blue-600 sm:rounded-xl sm:p-1.5 dark:bg-blue-950/60 dark:text-blue-400">
-                <Calendar size={13} className="sm:size-[14px]" />
+                <Calendar size={13} className="sm:size-3.5" />
               </div>
             </div>
             <div className="mt-2 sm:mt-3">
@@ -577,7 +577,7 @@ export default function AnalyticsPage() {
                 Avg / Month
               </span>
               <div className="rounded-lg bg-indigo-50 p-1 text-indigo-600 sm:rounded-xl sm:p-1.5 dark:bg-indigo-950/60 dark:text-indigo-400">
-                <Flame size={13} className="sm:size-[14px]" />
+                <Flame size={13} className="sm:size-3.5" />
               </div>
             </div>
             <div className="mt-2 sm:mt-3">
@@ -597,7 +597,7 @@ export default function AnalyticsPage() {
                 Transactions
               </span>
               <div className="rounded-lg bg-purple-50 p-1 text-purple-600 sm:rounded-xl sm:p-1.5 dark:bg-purple-950/60 dark:text-purple-400">
-                <ReceiptText size={13} className="sm:size-[14px]" />
+                <ReceiptText size={13} className="sm:size-3.5" />
               </div>
             </div>
             <div className="mt-2 sm:mt-3">
@@ -617,7 +617,7 @@ export default function AnalyticsPage() {
                 Avg / Txn
               </span>
               <div className="rounded-lg bg-amber-50 p-1 text-amber-600 sm:rounded-xl sm:p-1.5 dark:bg-amber-950/60 dark:text-amber-400">
-                <Wallet size={13} className="sm:size-[14px]" />
+                <Wallet size={13} className="sm:size-3.5" />
               </div>
             </div>
             <div className="mt-2 sm:mt-3">
@@ -637,7 +637,7 @@ export default function AnalyticsPage() {
                 Largest Txn
               </span>
               <div className="rounded-lg bg-rose-50 p-1 text-rose-600 sm:rounded-xl sm:p-1.5 dark:bg-rose-950/60 dark:text-rose-400">
-                <ArrowUpRight size={13} className="sm:size-[14px]" />
+                <ArrowUpRight size={13} className="sm:size-3.5" />
               </div>
             </div>
             <div className="mt-2 sm:mt-3">
@@ -674,7 +674,7 @@ export default function AnalyticsPage() {
                   : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
               }`}
             >
-              <TrendingUp size={13} className="sm:size-[14px]" />
+              <TrendingUp size={13} className="sm:size-3.5" />
               <span>Multi-Month Trajectory</span>
             </button>
 
@@ -686,7 +686,7 @@ export default function AnalyticsPage() {
                   : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
               }`}
             >
-              <PieIcon size={13} className="sm:size-[14px]" />
+              <PieIcon size={13} className="sm:size-3.5" />
               <span>Lifetime Categories</span>
             </button>
 
@@ -698,7 +698,7 @@ export default function AnalyticsPage() {
                   : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
               }`}
             >
-              <Wallet size={13} className="sm:size-[14px]" />
+              <Wallet size={13} className="sm:size-3.5" />
               <span>Payment Modes</span>
             </button>
           </div>

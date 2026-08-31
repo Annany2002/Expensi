@@ -394,7 +394,7 @@ export default function CategoryHubModal({
         <div className="flex shrink-0 items-center justify-between border-b border-slate-200/80 px-4 py-3 sm:px-6 sm:py-4 dark:border-slate-800/80">
           <div className="flex items-center gap-2.5 sm:gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-linear-to-tr from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25 sm:h-9 sm:w-9 sm:rounded-2xl">
-              <PieChart size={16} className="sm:size-[18px]" />
+              <PieChart size={16} className="sm:size-4.5" />
             </div>
             <div>
               <div className="flex items-center gap-1.5 sm:gap-2">
@@ -524,7 +524,7 @@ export default function CategoryHubModal({
                     <div
                       key={c.id}
                       onClick={() => setSelectedCatId(c.id)}
-                      className={`group relative flex min-w-[140px] shrink-0 cursor-pointer items-center justify-between rounded-xl p-2.5 transition-all sm:min-w-[160px] sm:rounded-2xl sm:p-3 md:w-full ${
+                      className={`group relative flex min-w-35 shrink-0 cursor-pointer items-center justify-between rounded-xl p-2.5 transition-all sm:min-w-40 sm:rounded-2xl sm:p-3 md:w-full ${
                         isSelected
                           ? 'border border-indigo-500/50 bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
                           : 'border border-slate-200/80 bg-white/70 text-slate-700 hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white'
