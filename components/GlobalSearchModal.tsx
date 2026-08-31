@@ -75,41 +75,41 @@ export default function GlobalSearchModal({
   if (!isOpen) return null;
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex items-start justify-center bg-black/75 p-4 pt-16 backdrop-blur-xl duration-150 sm:pt-24 dark:bg-black/90">
-      <div className="glass-panel flex max-h-[80vh] w-full max-w-2xl flex-col rounded-3xl shadow-2xl">
+    <div className="animate-in fade-in fixed inset-0 z-50 flex items-start justify-center bg-black/75 p-2.5 pt-10 backdrop-blur-xl duration-150 sm:p-4 sm:pt-20 dark:bg-black/90">
+      <div className="glass-panel flex max-h-[88vh] w-full max-w-2xl flex-col rounded-2xl shadow-2xl sm:max-h-[80vh] sm:rounded-3xl">
         {/* Search Input Bar */}
-        <div className="flex items-center gap-3 border-b border-slate-200/80 p-4 dark:border-slate-800">
-          <Search size={20} className="text-indigo-500" />
+        <div className="flex items-center gap-2.5 border-b border-slate-200/80 p-3 sm:gap-3 sm:p-4 dark:border-slate-800">
+          <Search size={18} className="shrink-0 text-indigo-500 sm:size-[20px]" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search expenses by keyword, category, payment mode, date, or amount..."
-            className="flex-1 bg-transparent text-sm font-medium text-slate-900 placeholder-slate-400 focus:outline-none dark:text-white dark:placeholder-slate-500"
+            placeholder="Search descriptions, categories, amounts..."
+            className="flex-1 bg-transparent text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none sm:text-sm dark:text-white dark:placeholder-slate-500"
           />
           {query && (
             <button
               onClick={() => setQuery('')}
               className="p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white"
             >
-              <X size={16} />
+              <X size={15} />
             </button>
           )}
           <button
             onClick={handleClose}
-            className="rounded-xl border border-slate-200/80 bg-white/80 px-2.5 py-1 text-xs font-bold text-slate-600 shadow-2xs hover:bg-slate-100 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-700"
+            className="rounded-xl border border-slate-200/80 bg-white/80 px-2 py-1 text-xs font-bold text-slate-600 shadow-2xs hover:bg-slate-100 sm:px-2.5 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             Esc
           </button>
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-200/80 px-4 py-2.5 text-xs dark:border-slate-800">
-          <span className="font-bold text-slate-400">Category:</span>
+        {/* Filter Pills - Horizontal swipeable on mobile */}
+        <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto border-b border-slate-200/80 px-3 py-2 text-xs sm:px-4 sm:py-2.5 dark:border-slate-800">
+          <span className="shrink-0 font-bold text-slate-400">Category:</span>
           <button
             onClick={() => setSelectedCategoryFilter('all')}
-            className={`rounded-xl px-2.5 py-1 font-bold transition-all ${
+            className={`shrink-0 rounded-xl px-2.5 py-1 font-bold whitespace-nowrap transition-all ${
               selectedCategoryFilter === 'all'
                 ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25 hover:bg-indigo-500'
                 : 'border border-slate-200/90 bg-white/80 text-slate-700 hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-700/80 dark:bg-slate-800/70 dark:text-slate-300 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white'
@@ -121,7 +121,7 @@ export default function GlobalSearchModal({
             <button
               key={c.id}
               onClick={() => setSelectedCategoryFilter(c.id)}
-              className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 font-bold transition-all ${
+              className={`flex shrink-0 items-center gap-1.5 rounded-xl px-2.5 py-1 font-bold whitespace-nowrap transition-all ${
                 selectedCategoryFilter === c.id
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25 hover:bg-indigo-500'
                   : 'border border-slate-200/90 bg-white/80 text-slate-700 hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-700/80 dark:bg-slate-800/70 dark:text-slate-300 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white'
@@ -135,14 +135,14 @@ export default function GlobalSearchModal({
             </button>
           ))}
 
-          <div className="mx-1 h-3 w-px bg-slate-200 dark:bg-slate-800" />
+          <div className="mx-1 h-3 w-px shrink-0 bg-slate-200 dark:bg-slate-800" />
 
-          <span className="font-bold text-slate-400">Mode:</span>
+          <span className="shrink-0 font-bold text-slate-400">Mode:</span>
           {['UPI', 'Card', 'Cash', 'NetBanking'].map((mode) => (
             <button
               key={mode}
               onClick={() => setSelectedModeFilter(selectedModeFilter === mode ? 'all' : mode)}
-              className={`rounded-xl px-2.5 py-1 font-bold transition-all ${
+              className={`shrink-0 rounded-xl px-2.5 py-1 font-bold whitespace-nowrap transition-all ${
                 selectedModeFilter === mode
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25 hover:bg-indigo-500'
                   : 'border border-slate-200/90 bg-white/80 text-slate-700 hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-700/80 dark:bg-slate-800/70 dark:text-slate-300 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white'
@@ -154,7 +154,7 @@ export default function GlobalSearchModal({
 
           <button
             onClick={() => setOnlyEmi(!onlyEmi)}
-            className={`flex items-center gap-1 rounded-xl px-2.5 py-1 font-bold transition-all ${
+            className={`flex shrink-0 items-center gap-1 rounded-xl px-2.5 py-1 font-bold whitespace-nowrap transition-all ${
               onlyEmi
                 ? 'bg-purple-600 text-white shadow-md shadow-purple-600/25 hover:bg-purple-500'
                 : 'border border-slate-200/90 bg-white/80 text-slate-700 hover:border-purple-300 hover:bg-white hover:text-purple-600 dark:border-slate-700/80 dark:bg-slate-800/70 dark:text-slate-300 dark:hover:border-purple-500/60 dark:hover:bg-slate-700 dark:hover:text-white'
