@@ -98,6 +98,7 @@ interface StoreContextType {
   allBudgets: Record<string, number | null>;
   stats: MonthStats;
   loading: boolean;
+  initialLoading: boolean;
   error: string | null;
 
   // Actions
@@ -177,6 +178,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     monthEmiCount: 0,
   });
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Initialize theme & rollover settings
@@ -230,9 +232,11 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
           setUser(data.user);
         } else {
           setUser(null);
+          setInitialLoading(false);
         }
       } catch {
         setUser(null);
+        setInitialLoading(false);
       } finally {
         setAuthLoading(false);
       }
@@ -251,6 +255,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       if (!res.ok) {
         return { success: false, error: data.error || 'Login failed' };
       }
+      setInitialLoading(true);
       setUser(data.user);
       return { success: true };
     } catch (err: unknown) {
@@ -270,6 +275,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       if (!res.ok) {
         return { success: false, error: data.error || 'Registration failed' };
       }
+      setInitialLoading(true);
       setUser(data.user);
       return { success: true };
     } catch (err: unknown) {
@@ -283,6 +289,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch {}
     setUser(null);
+    setInitialLoading(false);
     setCategories([]);
     setAllCategories([]);
     setExpenses([]);
@@ -395,6 +402,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         setError(msg);
       } finally {
         setLoading(false);
+        setInitialLoading(false);
       }
     },
     [user],
@@ -637,6 +645,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         allBudgets,
         stats,
         loading,
+        initialLoading,
         error,
         setMonthlyBudget,
         addCategory,
