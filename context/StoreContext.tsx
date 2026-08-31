@@ -156,6 +156,55 @@ function getCurrentMonthString(): string {
   return `${year}-${month}`;
 }
 
+const CACHE_STORAGE_KEY_PREFIX = 'expensi_cache_';
+
+interface MonthCachedData {
+  categories: Category[];
+  expenses: Expense[];
+  monthlyBudget: number | null;
+  stats: MonthStats;
+}
+
+interface GlobalCachedData {
+  allCategories: Category[];
+  allExpenses: Expense[];
+  allBudgets: Record<string, number | null>;
+}
+
+interface UserCache {
+  months: Record<string, MonthCachedData>;
+  global: GlobalCachedData | null;
+}
+
+function getSessionCache(userId: string): UserCache | null {
+  try {
+    const raw = sessionStorage.getItem(`${CACHE_STORAGE_KEY_PREFIX}${userId}`);
+    return raw ? (JSON.parse(raw) as UserCache) : null;
+  } catch {
+    return null;
+  }
+}
+
+function setSessionCache(userId: string, cache: UserCache) {
+  try {
+    sessionStorage.setItem(`${CACHE_STORAGE_KEY_PREFIX}${userId}`, JSON.stringify(cache));
+  } catch {}
+}
+
+function clearSessionCache(userId?: string) {
+  try {
+    if (userId) {
+      sessionStorage.removeItem(`${CACHE_STORAGE_KEY_PREFIX}${userId}`);
+    } else {
+      Object.keys(sessionStorage).forEach((k) => {
+        if (k.startsWith(CACHE_STORAGE_KEY_PREFIX)) {
+          sessionStorage.removeItem(k);
+        }
+      });
+    }
+  } catch {}
+}
+
 export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -180,6 +229,19 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // In-memory SWR Cache Reference
+  const cacheRef = React.useRef<UserCache>({
+    months: {},
+    global: null,
+  });
+
+  const invalidateCache = useCallback(() => {
+    cacheRef.current = { months: {}, global: null };
+    if (user?.id) {
+      clearSessionCache(user.id);
+    }
+  }, [user]);
 
   // Initialize theme & rollover settings
   useEffect(() => {
@@ -221,7 +283,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // Auth: Check current user session on mount
+  // Auth: Check current user session on mount and restore cached state for 0ms initial load
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -229,7 +291,29 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         const res = await fetch('/api/auth/me');
         if (res.ok) {
           const data = await res.json();
-          setUser(data.user);
+          const authUser = data.user;
+          setUser(authUser);
+
+          // Restore from cache immediately if present
+          if (authUser?.id) {
+            const savedCache = getSessionCache(authUser.id);
+            if (savedCache) {
+              cacheRef.current = savedCache;
+              const currentMonthCache = savedCache.months[selectedMonth];
+              if (currentMonthCache) {
+                setCategories(currentMonthCache.categories);
+                setExpenses(currentMonthCache.expenses);
+                setMonthlyBudgetState(currentMonthCache.monthlyBudget);
+                setStats(currentMonthCache.stats);
+                if (savedCache.global) {
+                  setAllCategories(savedCache.global.allCategories);
+                  setAllExpenses(savedCache.global.allExpenses);
+                  setAllBudgets(savedCache.global.allBudgets);
+                }
+                setInitialLoading(false);
+              }
+            }
+          }
         } else {
           setUser(null);
           setInitialLoading(false);
@@ -242,7 +326,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       }
     };
     checkAuth();
-  }, []);
+  }, [selectedMonth]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -288,6 +372,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch {}
+    clearSessionCache(user?.id);
+    cacheRef.current = { months: {}, global: null };
     setUser(null);
     setInitialLoading(false);
     setCategories([]);
@@ -306,45 +392,57 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // Month navigation helpers
-  const setSelectedMonth = (month: string) => {
+  // Month navigation helpers with instant cached state application
+  const applyMonthChange = useCallback((month: string) => {
     setSelectedMonthState(month);
+    const cached = cacheRef.current.months[month];
+    if (cached) {
+      setCategories(cached.categories);
+      setExpenses(cached.expenses);
+      setMonthlyBudgetState(cached.monthlyBudget);
+      setStats(cached.stats);
+    }
+  }, []);
+
+  const setSelectedMonth = (month: string) => {
+    applyMonthChange(month);
   };
 
   const goToPreviousMonth = () => {
-    setSelectedMonthState((curr) => {
-      const [yStr, mStr] = curr.split('-');
-      const y = parseInt(yStr, 10);
-      const m = parseInt(mStr, 10) - 1;
-      const prevDate = new Date(y, m - 1, 1);
-      const newY = prevDate.getFullYear();
-      const newM = String(prevDate.getMonth() + 1).padStart(2, '0');
-      return `${newY}-${newM}`;
-    });
+    const [yStr, mStr] = selectedMonth.split('-');
+    const y = parseInt(yStr, 10);
+    const m = parseInt(mStr, 10) - 1;
+    const prevDate = new Date(y, m - 1, 1);
+    const newY = prevDate.getFullYear();
+    const newM = String(prevDate.getMonth() + 1).padStart(2, '0');
+    applyMonthChange(`${newY}-${newM}`);
   };
 
   const goToNextMonth = () => {
-    setSelectedMonthState((curr) => {
-      const [yStr, mStr] = curr.split('-');
-      const y = parseInt(yStr, 10);
-      const m = parseInt(mStr, 10) - 1;
-      const nextDate = new Date(y, m + 1, 1);
-      const newY = nextDate.getFullYear();
-      const newM = String(nextDate.getMonth() + 1).padStart(2, '0');
-      return `${newY}-${newM}`;
-    });
+    const [yStr, mStr] = selectedMonth.split('-');
+    const y = parseInt(yStr, 10);
+    const m = parseInt(mStr, 10) - 1;
+    const nextDate = new Date(y, m + 1, 1);
+    const newY = nextDate.getFullYear();
+    const newM = String(nextDate.getMonth() + 1).padStart(2, '0');
+    applyMonthChange(`${newY}-${newM}`);
   };
 
   const goToCurrentMonth = () => {
-    setSelectedMonthState(getCurrentMonthString());
+    applyMonthChange(getCurrentMonthString());
   };
 
-  // Fetch all user data for the selected month
+  // Fetch all user data for the selected month with SWR cache updating
   const fetchData = useCallback(
-    async (month: string) => {
+    async (month: string, forceSilent = false) => {
       if (!user) return;
+      const isCached = Boolean(cacheRef.current.months[month]);
+      const silent = forceSilent || isCached;
+
       try {
-        setLoading(true);
+        if (!silent) {
+          setLoading(true);
+        }
         setError(null);
 
         const [catRes, allCatRes, expRes, allExpRes, budgetRes, allBudgetsRes, statsRes] =
@@ -358,43 +456,80 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
             fetch(`/api/stats?month=${month}`),
           ]);
 
+        let freshCategories: Category[] = [];
         if (catRes.ok) {
           const catData = await catRes.json();
-          setCategories(catData.categories || []);
+          freshCategories = catData.categories || [];
+          setCategories(freshCategories);
         }
 
+        let freshAllCategories: Category[] = [];
         if (allCatRes.ok) {
           const allCatData = await allCatRes.json();
-          setAllCategories(allCatData.categories || []);
+          freshAllCategories = allCatData.categories || [];
+          setAllCategories(freshAllCategories);
         }
 
+        let freshExpenses: Expense[] = [];
         if (expRes.ok) {
           const expData = await expRes.json();
-          setExpenses(expData.expenses || []);
+          freshExpenses = expData.expenses || [];
+          setExpenses(freshExpenses);
         }
 
+        let freshAllExpenses: Expense[] = [];
         if (allExpRes.ok) {
           const allExpData = await allExpRes.json();
-          setAllExpenses(allExpData.expenses || []);
+          freshAllExpenses = allExpData.expenses || [];
+          setAllExpenses(freshAllExpenses);
         }
 
+        let freshMonthlyBudget: number | null = null;
         if (budgetRes.ok) {
           const budgetData = await budgetRes.json();
-          setMonthlyBudgetState(budgetData.amount ?? null);
+          freshMonthlyBudget = budgetData.amount ?? null;
+          setMonthlyBudgetState(freshMonthlyBudget);
         }
 
+        let freshAllBudgets: Record<string, number | null> = {};
         if (allBudgetsRes.ok) {
           const allBudgetsData = await allBudgetsRes.json();
           const budgetMap: Record<string, number | null> = {};
           (allBudgetsData.budgets || []).forEach((b: { month: string; amount: number | null }) => {
             budgetMap[b.month] = b.amount;
           });
+          freshAllBudgets = budgetMap;
           setAllBudgets(budgetMap);
         }
 
+        let freshStats: MonthStats = {
+          allTimeTotalSpent: 0,
+          allTimeCount: 0,
+          recordedMonths: [],
+          monthTotalSpent: 0,
+          monthEmiTotal: 0,
+          monthEmiCount: 0,
+        };
         if (statsRes.ok) {
           const statsData = await statsRes.json();
-          setStats(statsData);
+          freshStats = statsData;
+          setStats(freshStats);
+        }
+
+        // Save fresh data to in-memory and session cache
+        cacheRef.current.months[month] = {
+          categories: freshCategories,
+          expenses: freshExpenses,
+          monthlyBudget: freshMonthlyBudget,
+          stats: freshStats,
+        };
+        cacheRef.current.global = {
+          allCategories: freshAllCategories,
+          allExpenses: freshAllExpenses,
+          allBudgets: freshAllBudgets,
+        };
+        if (user.id) {
+          setSessionCache(user.id, cacheRef.current);
         }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Failed to connect to database';
@@ -415,10 +550,10 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   }, [user, selectedMonth, fetchData]);
 
   const refreshData = async () => {
-    await fetchData(selectedMonth);
+    await fetchData(selectedMonth, true);
   };
 
-  // Actions
+  // Actions with automatic cache invalidation
   const setMonthlyBudget = async (amount: number | null) => {
     if (!user) return;
     try {
@@ -428,6 +563,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ month: selectedMonth, amount }),
       });
+      invalidateCache();
       await refreshData();
     } catch (err) {
       console.error('Error saving budget:', err);
@@ -443,6 +579,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         body: JSON.stringify({ ...cat, month: selectedMonth }),
       });
       if (res.ok) {
+        invalidateCache();
         await refreshData();
       }
     } catch (err) {
@@ -462,6 +599,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         body: JSON.stringify(updates),
       });
       if (res.ok) {
+        invalidateCache();
         await refreshData();
       }
     } catch (err) {
@@ -476,6 +614,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         method: 'DELETE',
       });
       if (res.ok) {
+        invalidateCache();
         await refreshData();
       }
     } catch (err) {
@@ -498,6 +637,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         body: JSON.stringify(exp),
       });
       if (res.ok) {
+        invalidateCache();
         await refreshData();
       }
     } catch (err) {
@@ -523,6 +663,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         body: JSON.stringify(updates),
       });
       if (res.ok) {
+        invalidateCache();
         await refreshData();
       }
     } catch (err) {
@@ -538,6 +679,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         method: 'DELETE',
       });
       if (res.ok) {
+        invalidateCache();
         await refreshData();
       }
     } catch (err) {
@@ -561,6 +703,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         body: JSON.stringify(params),
       });
       if (res.ok) {
+        invalidateCache();
         await refreshData();
       }
     } catch (err) {
