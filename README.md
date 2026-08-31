@@ -20,46 +20,46 @@ A full-stack, high-performance financial management application built with **Nex
 
 ---
 
-## ⚡ Highlights
+## Highlights
 
-- 🔒 **Secure Authentication**: JWT-based session cookies with `jose` and `bcryptjs` password encryption.
-- 📅 **Multi-Month Ledger**: Independent billing cycle tracking with quick month dropdown navigation.
-- 💳 **Automated EMI Schedule Engine**: Convert any one-off expense into recurring monthly installments across 3 to 36 months.
-- 🔄 **Smart Budget Rollover**: Automatically calculates previous month surpluses and rolls unused budget into the current month.
-- 📊 **Macro Spending Intelligence (`/analytics`)**: Lifetime spending trajectories, category breakdowns, payment mode metrics, and searchable transaction ledger.
-- 🚀 **0ms Client-Side SWR Caching**: Instant month switching and page hydration via in-memory caching and session persistence.
-- 📱 **Mobile-First & PWA Standalone**: Designed for all screen sizes (mobile, tablet, desktop) and installable as a standalone native app on iOS and Android.
-- 💾 **Data Portability**: Instant CSV export per month or all-time, plus complete JSON database backup snapshots.
+- **Secure Authentication**: JWT-based session cookies with `jose` and `bcryptjs` password encryption.
+- **Multi-Month Ledger**: Independent billing cycle tracking with quick month dropdown navigation.
+- **Automated EMI Schedule Engine**: Convert any one-off expense into recurring monthly installments across 3 to 36 months.
+- **Smart Budget Rollover**: Automatically calculates previous month surpluses and rolls unused budget into the current month.
+- **Macro Spending Intelligence (`/analytics`)**: Lifetime spending trajectories, category breakdowns, payment mode metrics, and searchable transaction ledger.
+- **0ms Client-Side SWR Caching**: Instant month switching and page hydration via in-memory caching and session persistence.
+- **Mobile-First & PWA Standalone**: Designed for all screen sizes (mobile, tablet, desktop) and installable as a standalone native app on iOS and Android.
+- **Data Portability**: Instant CSV export per month or all-time, plus complete JSON database backup snapshots.
 
 ---
 
-## 🛠️ Features
+## Features
 
-### 1. 📊 Dashboard & Month Management
+### 1. Dashboard & Month Management
 
 - **Active Monthly Budget**: Set custom monthly allowances with real-time remaining budget calculations and daily pace forecasting.
 - **Dynamic Category Bento Grid**: Create custom categories with individual spending limits, custom color badges, and progress meters.
 - **Fast Expense Logging**: Log expenses with payment methods (UPI, Card, Cash, NetBanking) and instant visual categorization.
 - **Global Search (`Cmd+K` / `Ctrl+K`)**: Rapidly search expenses across all recorded months with live category and payment method filters.
 
-### 2. 💳 EMI Amortization Engine
+### 2. EMI Amortization Engine
 
 - **One-Click EMI Conversion**: Turn large transactions into recurring monthly installments.
 - **Series Linking & Management**: Edit or delete single installments or remove entire remaining EMI series across all future months.
 
-### 3. 📈 Spending Analytics & Visualizations
+### 3. Spending Analytics & Visualizations
 
 - **Interactive Visualizers**: Powered by Recharts (Area charts for monthly trajectories, Donut charts for category mix, and Bar charts for payment methods).
 - **Responsive Transaction Ledger**: Dual-view ledger displaying interactive card feeds on mobile viewports and rich data tables on desktop.
 
-### 4. ⚡ Client Caching & Performance
+### 4. Client Caching & Performance
 
 - **Stale-While-Revalidate (SWR)**: Visited months render immediately from cache in 0ms without loading spinners or layout shifts.
 - **Background Sync & Invalidation**: Data updates automatically revalidate against MongoDB and flush outdated cache entries.
 
 ---
 
-## 🏗️ Tech Stack
+## Tech Stack
 
 | Layer               | Technology                                                                                       |
 | ------------------- | ------------------------------------------------------------------------------------------------ |
@@ -74,7 +74,7 @@ A full-stack, high-performance financial management application built with **Nex
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Clone the Repository
 
@@ -108,7 +108,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 📱 Mobile Installation (PWA)
+## Mobile Installation (PWA)
 
 ### iOS (Safari)
 
@@ -124,7 +124,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 📜 Available Scripts
+## Available Scripts
 
 | Command             | Description                                              |
 | ------------------- | -------------------------------------------------------- |
@@ -138,6 +138,6 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](LICENSE) © 2026 [Annany Vishwakarma](https://github.com/Annany2002).
