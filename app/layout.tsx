@@ -20,6 +20,17 @@ export const metadata: Metadata = {
   title: 'Expensi — Minimalist Multi-Month Budget & Expense Tracker',
   description:
     'Track monthly expenses, manage custom categories, plan EMIs, and monitor your total spending in INR.',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Expensi',
+  },
+  icons: {
+    icon: '/logo.svg',
+    shortcut: '/logo.svg',
+    apple: '/logo.svg',
+  },
 };
 
 export default function RootLayout({
