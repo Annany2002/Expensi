@@ -381,7 +381,7 @@ export default function CategoryHubModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5">
       {/* Ultra Frosted Backdrop */}
       <div
         className="animate-in fade-in absolute inset-0 bg-slate-950/60 backdrop-blur-xl transition-opacity duration-200"
@@ -389,24 +389,24 @@ export default function CategoryHubModal({
       />
 
       {/* Unified 2-Column Rectangular Master-Detail Dialog */}
-      <div className="glass-panel animate-in zoom-in-95 relative flex h-[88vh] max-h-212.5 w-full max-w-6xl flex-col overflow-hidden rounded-3xl shadow-2xl">
+      <div className="glass-panel animate-in zoom-in-95 relative flex h-[94vh] max-h-212.5 w-full max-w-6xl flex-col overflow-hidden rounded-2xl shadow-2xl sm:rounded-3xl">
         {/* Top Navbar in Modal */}
-        <div className="flex shrink-0 items-center justify-between border-b border-slate-200/80 px-6 py-4 dark:border-slate-800/80">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-linear-to-tr from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25">
-              <PieChart size={18} />
+        <div className="flex shrink-0 items-center justify-between border-b border-slate-200/80 px-4 py-3 sm:px-6 sm:py-4 dark:border-slate-800/80">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-linear-to-tr from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25 sm:h-9 sm:w-9 sm:rounded-2xl">
+              <PieChart size={16} className="sm:size-4.5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-black tracking-tight text-slate-900 dark:text-white">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h3 className="text-sm font-black tracking-tight text-slate-900 sm:text-base dark:text-white">
                   Categories & Expenses Manager
                 </h3>
-                <span className="rounded-full border border-indigo-200/80 bg-indigo-50/80 px-2 py-0.5 text-[10px] font-bold text-indigo-700 dark:border-indigo-900/60 dark:bg-indigo-950/60 dark:text-indigo-300">
+                <span className="shrink-0 rounded-full border border-indigo-200/80 bg-indigo-50/80 px-2 py-0.5 text-[9px] font-bold whitespace-nowrap text-indigo-700 sm:text-[10px] dark:border-indigo-900/60 dark:bg-indigo-950/60 dark:text-indigo-300">
                   {monthTitle}
                 </span>
               </div>
-              <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                {categories.length} categories • Total Month Outflow: {formatINR(totalMonthSpent)}
+              <p className="text-[10px] font-medium text-slate-500 sm:text-[11px] dark:text-slate-400">
+                {categories.length} categories • Total Outflow: {formatINR(totalMonthSpent)}
               </p>
             </div>
           </div>
@@ -414,7 +414,7 @@ export default function CategoryHubModal({
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="rounded-2xl border border-slate-200/80 bg-white/70 p-2 text-slate-400 backdrop-blur-md transition-colors hover:border-slate-300 hover:bg-white hover:text-slate-900 dark:border-slate-800/80 dark:bg-slate-800/60 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
+              className="rounded-xl border border-slate-200/80 bg-white/70 p-1.5 text-slate-400 backdrop-blur-md transition-colors hover:border-slate-300 hover:bg-white hover:text-slate-900 sm:rounded-2xl sm:p-2 dark:border-slate-800/80 dark:bg-slate-800/60 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
               title="Close (Esc)"
             >
               <X size={16} />
@@ -425,15 +425,15 @@ export default function CategoryHubModal({
         {/* 2-Column Master-Detail Body */}
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
           {/* ================= LEFT COLUMN: CATEGORY SELECTOR ================= */}
-          <aside className="custom-scrollbar flex w-full flex-col border-b border-slate-200/80 bg-slate-50/40 p-4 md:w-80 md:shrink-0 md:border-r md:border-b-0 dark:border-slate-800/80 dark:bg-slate-900/40">
+          <aside className="no-scrollbar flex w-full shrink-0 flex-col border-b border-slate-200/80 bg-slate-50/40 p-3 sm:p-4 md:w-80 md:border-r md:border-b-0 dark:border-slate-800/80 dark:bg-slate-900/40">
             {/* Sidebar Top: Title + Add Category Button */}
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-2.5 flex items-center justify-between sm:mb-3">
               <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
                 Select Category
               </span>
               <button
                 onClick={() => setIsCreatingCategory(!isCreatingCategory)}
-                className="flex items-center gap-1 rounded-xl bg-slate-900 px-2.5 py-1 text-[11px] font-bold text-white shadow-xs transition-all hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-500"
+                className="flex items-center gap-1 rounded-xl bg-slate-900 px-2 py-1 text-[11px] font-bold text-white shadow-xs transition-all hover:bg-slate-800 sm:px-2.5 dark:bg-indigo-600 dark:hover:bg-indigo-500"
               >
                 <Plus size={12} />
                 <span>{isCreatingCategory ? 'Cancel' : 'New Category'}</span>
@@ -499,9 +499,9 @@ export default function CategoryHubModal({
             )}
 
             {/* Category List Pills */}
-            <div className="custom-scrollbar flex flex-1 flex-row gap-2 overflow-x-auto md:flex-col md:overflow-x-visible md:overflow-y-auto">
+            <div className="no-scrollbar flex flex-row gap-2 overflow-x-auto pb-1 md:flex-1 md:flex-col md:overflow-x-visible md:overflow-y-auto">
               {categories.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-6 text-center text-xs text-slate-400">
+                <div className="flex flex-col items-center justify-center p-4 text-center text-xs text-slate-400 sm:p-6">
                   <p>No categories yet for {monthTitle}.</p>
                   <button
                     onClick={() => setIsCreatingCategory(true)}
@@ -524,15 +524,15 @@ export default function CategoryHubModal({
                     <div
                       key={c.id}
                       onClick={() => setSelectedCatId(c.id)}
-                      className={`group relative flex shrink-0 cursor-pointer items-center justify-between rounded-2xl p-3 transition-all md:w-full ${
+                      className={`group relative flex min-w-35 shrink-0 cursor-pointer items-center justify-between rounded-xl p-2.5 transition-all sm:min-w-40 sm:rounded-2xl sm:p-3 md:w-full ${
                         isSelected
                           ? 'border border-indigo-500/50 bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
                           : 'border border-slate-200/80 bg-white/70 text-slate-700 hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5 overflow-hidden">
+                      <div className="flex items-center gap-2 overflow-hidden sm:gap-2.5">
                         <span
-                          className="h-3 w-3 shrink-0 rounded-full shadow-2xs ring-2 ring-white/50 dark:ring-black/50"
+                          className="h-2.5 w-2.5 shrink-0 rounded-full shadow-2xs ring-2 ring-white/50 sm:h-3 sm:w-3 dark:ring-black/50"
                           style={{ backgroundColor: c.color || '#3b82f6' }}
                         />
                         <div className="truncate text-left">
@@ -547,7 +547,7 @@ export default function CategoryHubModal({
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 text-right">
+                      <div className="flex items-center gap-1.5 text-right sm:gap-2">
                         <div>
                           <p className="text-xs font-black">{formatINR(c.spent)}</p>
                           {catLimit && (
@@ -573,7 +573,7 @@ export default function CategoryHubModal({
                           className={`rounded-lg p-1 transition-opacity ${
                             isSelected
                               ? 'text-indigo-200 hover:bg-indigo-700 hover:text-white'
-                              : 'text-slate-400 opacity-0 group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/50 dark:hover:text-rose-400'
+                              : 'text-slate-400 opacity-100 hover:bg-rose-50 hover:text-rose-600 md:opacity-0 md:group-hover:opacity-100 dark:hover:bg-rose-950/50 dark:hover:text-rose-400'
                           }`}
                           title="Delete Category"
                         >
@@ -592,9 +592,9 @@ export default function CategoryHubModal({
           </aside>
 
           {/* ================= RIGHT COLUMN: DETAILED CATEGORY BREAKDOWN & LEDGER ================= */}
-          <main className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto p-5">
+          <main className="custom-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto p-3.5 sm:p-5">
             {!activeCategory ? (
-              <div className="flex h-full flex-col items-center justify-center text-center">
+              <div className="flex h-full flex-col items-center justify-center p-6 text-center">
                 <PieChart size={40} className="mb-3 text-slate-400" />
                 <h4 className="text-base font-bold text-slate-800 dark:text-slate-200">
                   No Category Selected
@@ -1013,7 +1013,7 @@ export default function CategoryHubModal({
                                 {formatINR(expense.amount)}
                               </span>
 
-                              <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                              <div className="flex items-center gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
                                 {!isEmi && (
                                   <button
                                     onClick={() => setConvertingExpense(expense)}
@@ -1062,11 +1062,13 @@ export default function CategoryHubModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="flex shrink-0 items-center justify-between border-t border-slate-200/80 bg-slate-50/50 px-6 py-3.5 text-xs font-medium text-slate-500 dark:border-slate-800/80 dark:bg-slate-900/40 dark:text-slate-400">
-          <span>Master-Detail Category View • Click any category on the left to switch.</span>
+        <div className="flex shrink-0 items-center justify-between border-t border-slate-200/80 bg-slate-50/50 px-4 py-3 text-xs font-medium text-slate-500 sm:px-6 sm:py-3.5 dark:border-slate-800/80 dark:bg-slate-900/40 dark:text-slate-400">
+          <span className="truncate pr-2 text-[11px] sm:text-xs">
+            Master-Detail View • Select category to manage transactions.
+          </span>
           <button
             onClick={onClose}
-            className="rounded-xl border border-slate-200/80 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-100 dark:border-slate-700/80 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            className="rounded-xl border border-slate-200/80 bg-white px-3 py-1 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-100 sm:px-3.5 sm:py-1.5 dark:border-slate-700/80 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             Done
           </button>

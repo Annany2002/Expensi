@@ -45,7 +45,7 @@ export default function CategoryCard({ category, onViewTransactions }: CategoryC
   return (
     <div
       onClick={onViewTransactions}
-      className="glass-card-interactive group cursor-pointer rounded-3xl p-5"
+      className="glass-card-interactive group cursor-pointer rounded-2xl p-4 sm:rounded-3xl sm:p-5"
     >
       <div className="mb-3.5 flex items-start justify-between">
         <div className="flex items-center gap-2.5">
@@ -55,7 +55,7 @@ export default function CategoryCard({ category, onViewTransactions }: CategoryC
           />
           <div>
             <div className="flex items-center gap-1.5">
-              <h3 className="text-base font-bold tracking-tight text-slate-900 dark:text-white">
+              <h3 className="text-sm font-bold tracking-tight text-slate-900 sm:text-base dark:text-white">
                 {category.name}
               </h3>
               {totalMonthSpent > 0 && category.spent > 0 && (
@@ -64,17 +64,17 @@ export default function CategoryCard({ category, onViewTransactions }: CategoryC
                 </span>
               )}
             </div>
-            <span className="flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+            <span className="flex items-center gap-1 text-[10px] font-medium text-slate-500 sm:text-[11px] dark:text-slate-400">
               <ReceiptText size={11} />
               {categoryExpensesCount} txn{categoryExpensesCount === 1 ? '' : 's'}
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="rounded-xl p-1.5 text-slate-400 opacity-0 transition-colors group-hover:opacity-100 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/50 dark:hover:text-rose-400"
+            className="rounded-xl p-1.5 text-slate-400 opacity-100 transition-colors hover:bg-rose-50 hover:text-rose-600 md:opacity-0 md:group-hover:opacity-100 dark:hover:bg-rose-950/50 dark:hover:text-rose-400"
             title="Delete Category"
           >
             {isDeleting ? (
@@ -91,17 +91,17 @@ export default function CategoryCard({ category, onViewTransactions }: CategoryC
 
       <div className="mb-2.5 flex items-end justify-between">
         <div>
-          <span className="mb-0.5 block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+          <span className="mb-0.5 block text-[9px] font-bold tracking-wider text-slate-400 uppercase sm:text-[10px]">
             Spent
           </span>
           <span
-            className={`text-2xl font-black tracking-tight ${isOverBudget ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}`}
+            className={`text-xl font-black tracking-tight sm:text-2xl ${isOverBudget ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}`}
           >
             {formatINR(category.spent)}
           </span>
         </div>
         <div className="text-right">
-          <span className="mb-0.5 block text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+          <span className="mb-0.5 block text-[9px] font-bold tracking-wider text-slate-400 uppercase sm:text-[10px]">
             Limit
           </span>
           <span className="text-xs font-bold text-slate-600 dark:text-slate-400">

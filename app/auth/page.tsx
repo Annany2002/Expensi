@@ -134,33 +134,37 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="bg-ambient-mesh flex min-h-screen flex-col items-center justify-center p-4">
+    <div className="bg-ambient-mesh flex min-h-screen flex-col items-center justify-center p-3 sm:p-4">
       {/* Top right theme toggle */}
-      <div className="absolute top-6 right-6">
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
         <button
           onClick={toggleTheme}
-          className="rounded-2xl border border-slate-200/80 bg-white/70 p-2.5 text-slate-600 shadow-2xs backdrop-blur-md transition-all hover:border-slate-300 hover:bg-white hover:text-slate-900 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
+          className="rounded-xl border border-slate-200/80 bg-white/70 p-2 text-slate-600 shadow-2xs backdrop-blur-md transition-all hover:border-slate-300 hover:bg-white hover:text-slate-900 sm:rounded-2xl sm:p-2.5 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white"
           title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
         >
-          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          {theme === 'dark' ? (
+            <Sun size={16} className="sm:size-[18px]" />
+          ) : (
+            <Moon size={16} className="sm:size-[18px]" />
+          )}
         </button>
       </div>
 
-      <div className="glass-panel w-full max-w-md rounded-3xl p-8 shadow-2xl">
+      <div className="glass-panel w-full max-w-md rounded-2xl p-5 shadow-2xl sm:rounded-3xl sm:p-8">
         {/* Brand */}
-        <div className="mb-8 flex flex-col items-center text-center">
+        <div className="mb-6 flex flex-col items-center text-center sm:mb-8">
           <Image
             src="/logo.svg"
             alt="Expensi Logo"
-            width={64}
-            height={64}
+            width={56}
+            height={56}
             priority
-            className="mb-4 rounded-2xl shadow-lg shadow-indigo-500/25"
+            className="mb-3 rounded-2xl shadow-lg shadow-indigo-500/25 sm:mb-4 sm:h-16 sm:w-16"
           />
-          <h1 className="mb-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+          <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-900 sm:mb-2 sm:text-3xl dark:text-white">
             Expensi
           </h1>
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+          <p className="text-[11px] font-medium text-slate-500 sm:text-xs dark:text-slate-400">
             {isLogin
               ? 'Sign in to access your personal expense dashboard'
               : 'Create an account to start tracking expenses & EMIs'}

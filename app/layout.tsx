@@ -1,10 +1,20 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { StoreProvider } from '@/context/StoreContext';
 import { ToastProvider } from '@/context/ToastContext';
 
 const inter = Inter({ subsets: ['latin'] });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f8fafd' },
+    { media: '(prefers-color-scheme: dark)', color: '#060813' },
+  ],
+};
 
 export const metadata: Metadata = {
   title: 'Expensi — Minimalist Multi-Month Budget & Expense Tracker',

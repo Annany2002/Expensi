@@ -69,16 +69,16 @@ export default function MonthPickerModal({
   };
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-xl duration-150 dark:bg-black/90">
-      <div className="glass-panel relative w-full max-w-md rounded-3xl p-6 shadow-2xl">
+    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3 backdrop-blur-xl duration-150 sm:p-4 dark:bg-black/90">
+      <div className="glass-panel relative w-full max-w-md rounded-2xl p-4.5 shadow-2xl sm:rounded-3xl sm:p-6">
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-1 text-slate-400 transition-colors hover:text-slate-900 dark:hover:text-white"
+          className="absolute top-4 right-4 p-1 text-slate-400 transition-colors hover:text-slate-900 sm:top-5 sm:right-5 dark:hover:text-white"
         >
           <X size={16} />
         </button>
 
-        <div className="mb-5 flex items-center gap-2">
+        <div className="mb-4 flex items-center gap-2 sm:mb-5">
           <Calendar size={18} className="text-indigo-500" />
           <h2 className="text-base font-black tracking-tight text-slate-900 dark:text-white">
             Select Billing Month
