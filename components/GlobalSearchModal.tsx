@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useStore, Expense } from '@/context/StoreContext';
 import { Search, X, Calendar, CreditCard, ArrowRight } from 'lucide-react';
 
@@ -22,19 +22,31 @@ export default function GlobalSearchModal({
   const [onlyEmi, setOnlyEmi] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const handleClose = useCallback(() => {
+    setQuery('');
+    setSelectedCategoryFilter('all');
+    setSelectedModeFilter('all');
+    setOnlyEmi(false);
+    onClose();
+  }, [onClose]);
+
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [isOpen]);
 
-  const handleClose = () => {
-    setQuery('');
-    setSelectedCategoryFilter('all');
-    setSelectedModeFilter('all');
-    setOnlyEmi(false);
-    onClose();
-  };
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, handleClose]);
 
   const categoryMap = useMemo(() => {
     const map = new Map<string, { name: string; color: string }>();

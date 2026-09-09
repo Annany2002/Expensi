@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useStore, Category, Expense } from '@/context/StoreContext';
 import { useToast } from '@/context/ToastContext';
 import {
@@ -130,6 +130,27 @@ export default function TransactionHistoryModal({
         (exp.paymentMethod && exp.paymentMethod.toLowerCase().includes(q)),
     );
   }, [categoryExpenses, searchQuery]);
+
+  // Handle ESC key to close sub-modals, edit mode, or main modal
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (convertingExpense) {
+          setConvertingExpense(null);
+        } else if (deletingEmiExpense) {
+          setDeletingEmiExpense(null);
+        } else if (editingId) {
+          setEditingId(null);
+        } else {
+          onClose();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, convertingExpense, deletingEmiExpense, editingId, onClose]);
 
   if (!isOpen || !category) return null;
 

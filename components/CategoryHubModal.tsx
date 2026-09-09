@@ -146,18 +146,59 @@ export default function CategoryHubModal({
     setDate(today.startsWith(selectedMonth) ? today : `${selectedMonth}-01`);
   }, [selectedMonth]);
 
-  // Sync selectedCatId when opening or when categories change
+  // Sync selectedCatId when modal opens or initialCategoryId changes
   useEffect(() => {
+    if (!isOpen) return;
     if (initialCategoryId && categories.some((c) => c.id === initialCategoryId)) {
       setSelectedCatId(initialCategoryId);
     } else if (categories.length > 0) {
-      if (!selectedCatId || !categories.some((c) => c.id === selectedCatId)) {
-        setSelectedCatId(categories[0].id);
-      }
+      setSelectedCatId((prev) =>
+        prev && categories.some((c) => c.id === prev) ? prev : categories[0].id,
+      );
     } else {
       setSelectedCatId(null);
     }
-  }, [initialCategoryId, categories, selectedCatId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, initialCategoryId]);
+
+  // If categories list changes, ensure selectedCatId remains valid
+  useEffect(() => {
+    if (selectedCatId && !categories.some((c) => c.id === selectedCatId)) {
+      setSelectedCatId(categories[0]?.id ?? null);
+    } else if (!selectedCatId && categories.length > 0) {
+      setSelectedCatId(categories[0].id);
+    }
+  }, [categories, selectedCatId]);
+
+  // Handle ESC key to close sub-modals, edit mode, or main modal
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (convertingExpense) {
+          setConvertingExpense(null);
+        } else if (deletingEmiExpense) {
+          setDeletingEmiExpense(null);
+        } else if (editingId) {
+          setEditingId(null);
+        } else if (isCreatingCategory) {
+          setIsCreatingCategory(false);
+        } else {
+          onClose();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [
+    isOpen,
+    convertingExpense,
+    deletingEmiExpense,
+    editingId,
+    isCreatingCategory,
+    onClose,
+  ]);
 
   const activeCategory = useMemo(() => {
     if (!selectedCatId) return categories[0] || null;
