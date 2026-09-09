@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useToast } from '@/context/ToastContext';
 import { X, Tag, Loader2 } from 'lucide-react';
@@ -28,6 +28,18 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
   const [limit, setLimit] = useState('');
   const [color, setColor] = useState(COLORS[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 

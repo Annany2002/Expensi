@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Calendar, Check, Sparkles } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
 
@@ -45,6 +45,18 @@ export default function MonthPickerModal({
     expenses.forEach((e) => set.add(e.month));
     return Array.from(set).sort().reverse();
   }, [stats.recordedMonths, expenses]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
