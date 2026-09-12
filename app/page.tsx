@@ -63,45 +63,107 @@ function PageSkeleton() {
         </div>
       </div>
 
-      {/* Hero Cards Skeleton */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="glass-panel space-y-4 rounded-3xl p-5 sm:p-6 md:col-span-2">
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-28 rounded-md" />
-              <Skeleton className="h-9 w-44 rounded-xl" />
+      {/* Hero Metrics Bento Grid Skeleton */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        {/* Card 1: Month Spending, Limit, and Progress (5 cols) */}
+        <div className="glass-panel flex flex-col justify-between rounded-3xl p-4 sm:p-5 lg:col-span-5">
+          <div>
+            <div className="flex h-7 items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Skeleton className="h-3.5 w-32 rounded-md" />
+                <Skeleton className="h-4 w-4 rounded-md" />
+              </div>
+              <Skeleton className="h-6 w-24 rounded-full" />
             </div>
-            <Skeleton className="h-8 w-24 rounded-full" />
+            <div className="mt-3">
+              <div className="flex items-baseline gap-2">
+                <Skeleton className="h-9 w-36 rounded-xl" />
+                <Skeleton className="h-3.5 w-20 rounded-md" />
+              </div>
+              <div className="mt-2 flex h-7 items-center gap-1.5">
+                <Skeleton className="h-3.5 w-44 rounded-md" />
+              </div>
+            </div>
           </div>
-          <Skeleton className="h-3 w-full rounded-full" />
-          <div className="grid grid-cols-2 gap-3 pt-2">
-            <Skeleton className="h-14 rounded-2xl" />
-            <Skeleton className="h-14 rounded-2xl" />
+          <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800/60">
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-3 w-28 rounded-md" />
+                <Skeleton className="h-3 w-14 rounded-md" />
+              </div>
+              <Skeleton className="h-2 w-full rounded-full" />
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-4">
-          <div className="glass-panel flex-1 space-y-3 rounded-3xl p-5">
-            <Skeleton className="h-4 w-32 rounded-md" />
-            <Skeleton className="h-8 w-24 rounded-xl" />
-            <Skeleton className="h-2 w-full rounded-full" />
+        {/* Card 2: Daily Runway & Safe Pace (4 cols) */}
+        <div className="glass-panel flex flex-col justify-between rounded-3xl p-4 sm:p-5 lg:col-span-4">
+          <div>
+            <div className="flex h-7 items-center justify-between">
+              <Skeleton className="h-3.5 w-28 rounded-md" />
+              <Skeleton className="h-6 w-20 rounded-full" />
+            </div>
+            <div className="mt-3">
+              <div className="flex items-baseline gap-1">
+                <Skeleton className="h-9 w-24 rounded-xl" />
+                <Skeleton className="h-3.5 w-8 rounded-md" />
+              </div>
+              <div className="mt-2 flex h-7 items-center gap-1.5">
+                <Skeleton className="h-3.5 w-40 rounded-md" />
+              </div>
+            </div>
           </div>
-          <div className="glass-panel flex-1 space-y-3 rounded-3xl p-5">
-            <Skeleton className="h-4 w-32 rounded-md" />
-            <Skeleton className="h-8 w-24 rounded-xl" />
-            <Skeleton className="h-2 w-full rounded-full" />
+          <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800/60">
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-3 w-32 rounded-md" />
+                <Skeleton className="h-3 w-16 rounded-md" />
+              </div>
+              <Skeleton className="h-2 w-full rounded-full" />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Mini Category Pills Carousel Skeleton */}
-      <div className="flex items-center gap-2 overflow-hidden py-1">
-        <Skeleton className="h-8 w-24 shrink-0 rounded-full" />
-        <Skeleton className="h-8 w-28 shrink-0 rounded-full" />
-        <Skeleton className="h-8 w-20 shrink-0 rounded-full" />
-        <Skeleton className="h-8 w-32 shrink-0 rounded-full" />
-        <Skeleton className="h-8 w-24 shrink-0 rounded-full" />
-        <Skeleton className="h-8 w-28 shrink-0 rounded-full" />
+        {/* Card 3: All-Time Activity & Analytics (3 cols) */}
+        <div className="glass-panel flex flex-col justify-between rounded-3xl p-4 sm:p-5 lg:col-span-3">
+          <div>
+            <div className="flex h-7 items-center justify-between">
+              <Skeleton className="h-3.5 w-24 rounded-md" />
+              <Skeleton className="h-6 w-18 rounded-full" />
+            </div>
+            <div className="mt-3">
+              <Skeleton className="h-9 w-28 rounded-xl" />
+              <div className="mt-2 flex h-7 items-center gap-1.5">
+                <Skeleton className="h-3.5 w-36 rounded-md" />
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800/60">
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-3 w-24 rounded-md" />
+                <Skeleton className="h-3 w-16 rounded-md" />
+              </div>
+              <Skeleton className="h-2 w-full rounded-full" />
+            </div>
+          </div>
+        </div>
+
+        {/* Dedicated Category Breakdown Strip Skeleton (12 cols) */}
+        <div className="glass-panel col-span-1 flex flex-col justify-between gap-3 rounded-3xl p-3.5 sm:p-4 lg:col-span-12 lg:flex-row lg:items-center">
+          <div className="flex shrink-0 items-center gap-2">
+            <Skeleton className="h-3.5 w-32 rounded-md" />
+            <Skeleton className="h-5 w-6 rounded-full" />
+          </div>
+          <div className="flex flex-1 items-center gap-2 overflow-hidden">
+            <Skeleton className="h-7 w-24 shrink-0 rounded-full" />
+            <Skeleton className="h-7 w-28 shrink-0 rounded-full" />
+            <Skeleton className="h-7 w-20 shrink-0 rounded-full" />
+            <Skeleton className="h-7 w-32 shrink-0 rounded-full" />
+            <Skeleton className="h-7 w-26 shrink-0 rounded-full" />
+          </div>
+          <Skeleton className="h-8 w-44 shrink-0 rounded-full" />
+        </div>
       </div>
 
       {/* Spending Analytics Chart Skeleton */}
@@ -373,9 +435,6 @@ export default function Home() {
                 <h1 className="text-lg font-black tracking-tight text-slate-900 sm:text-xl dark:text-white">
                   Expensi
                 </h1>
-                <span className="shrink-0 rounded-full border border-indigo-200/80 bg-indigo-50/80 px-2 py-0.5 text-[9px] font-bold whitespace-nowrap text-indigo-700 backdrop-blur-xs sm:text-[10px] dark:border-indigo-900/60 dark:bg-indigo-950/60 dark:text-indigo-300">
-                  v2.0
-                </span>
               </div>
               <p className="text-[10px] font-medium text-slate-500 sm:text-[11px] dark:text-slate-400">
                 Multi-Month Expense & EMI Ledger
@@ -675,37 +734,27 @@ export default function Home() {
               </div>
 
               {/* Clean Single-Row Subtitle */}
-              <div className="mt-1 flex h-6 items-center">
+              <div className="mt-2 flex h-7 items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
                 {previousMonthSurplus && previousMonthSurplus.surplus > 0 ? (
-                  <button
-                    type="button"
-                    onClick={handleToggleRolloverWithToast}
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold backdrop-blur-md transition-all ${
-                      enableRollover
-                        ? 'border-indigo-200/90 bg-indigo-50/80 text-indigo-700 shadow-2xs hover:bg-indigo-100/90 dark:border-indigo-500/30 dark:bg-indigo-950/40 dark:text-indigo-200 dark:hover:border-indigo-400/50 dark:hover:bg-indigo-900/50'
-                        : 'border-slate-200 bg-slate-100/80 text-slate-500 hover:bg-slate-200/70 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800/60'
-                    }`}
-                    title={enableRollover ? 'Rollover active (click to pause)' : 'Rollover paused (click to enable)'}
-                  >
-                    <Zap
-                      size={11}
-                      className={
+                  <>
+                    <Zap size={12} className="shrink-0 text-indigo-500 dark:text-indigo-400" />
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">
+                      +{formatINR(previousMonthSurplus.surplus)} from {previousMonthSurplus.monthName}
+                    </span>
+                    <span className="text-slate-300 dark:text-slate-600">•</span>
+                    <button
+                      type="button"
+                      onClick={handleToggleRolloverWithToast}
+                      className={`font-semibold transition-colors hover:underline ${
                         enableRollover
                           ? 'text-indigo-600 dark:text-indigo-400'
                           : 'text-slate-400 dark:text-slate-500'
-                      }
-                    />
-                    <span>+{formatINR(previousMonthSurplus.surplus)} from {previousMonthSurplus.monthName}</span>
-                    <span
-                      className={`rounded-md px-1.5 py-0.2 text-[9px] font-extrabold uppercase transition-colors ${
-                        enableRollover
-                          ? 'border border-indigo-200/80 bg-indigo-100/90 text-indigo-800 dark:border-indigo-700/50 dark:bg-indigo-800/50 dark:text-indigo-200'
-                          : 'border border-slate-300/80 bg-slate-200/80 text-slate-600 dark:border-slate-700/50 dark:bg-slate-800/70 dark:text-slate-300'
                       }`}
+                      title={enableRollover ? 'Rollover active (click to pause)' : 'Rollover paused (click to enable)'}
                     >
                       {enableRollover ? 'Active ✓' : 'Paused'}
-                    </span>
-                  </button>
+                    </button>
+                  </>
                 ) : (
                   <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
                     {hasBudget ? `Base budget: ${formatINR(monthlyBudget || 0)}` : 'No monthly limit configured'}
@@ -860,7 +909,7 @@ export default function Home() {
               </div>
 
               {/* Clean Single-Row Subtitle */}
-              <div className="mt-1 flex h-6 items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+              <div className="mt-2 flex h-7 items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
                 {isCurrentMonthViewed ? (
                   <>
                     <Calendar size={12} className="shrink-0 text-indigo-500 dark:text-indigo-400" />
@@ -960,7 +1009,7 @@ export default function Home() {
               </div>
 
               {/* Clean Single-Row Subtitle */}
-              <div className="mt-1 flex h-6 items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+              <div className="mt-2 flex h-7 items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
                 <BarChart3 size={12} className="shrink-0 text-purple-500 dark:text-purple-400" />
                 <span>
                   {stats.allTimeCount} recorded transaction{stats.allTimeCount === 1 ? '' : 's'}
