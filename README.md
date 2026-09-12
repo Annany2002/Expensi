@@ -16,14 +16,23 @@
 
 ---
 
+<div align="center">
+  <img src="public/dashboard-preview.png" alt="Expensi Dashboard Preview" width="100%" />
+</div>
+
+---
+
 A full-stack, high-performance financial management application built with **Next.js 16 (App Router)**, **React 19**, **TypeScript**, **Tailwind CSS 4**, **MongoDB (Mongoose)**, and **Progressive Web App (PWA)** standalone capabilities.
 
 ---
 
 ## Highlights
 
-- **Secure Authentication**: JWT-based session cookies with `jose` and `bcryptjs` password encryption.
+- **TypeUI Public Landing Page**: Minimalist, high-craft public homepage for non-authenticated visitors showcasing live dashboard previews and core mechanics.
+- **Secure Authentication & Routing**: JWT-based session cookies with `jose` and `bcryptjs` password encryption, with frictionless navigation back to home.
 - **Multi-Month Ledger**: Independent billing cycle tracking with quick month dropdown navigation.
+- **Daily Safe Pace & Burn Projection**: Real-time burn rate calculations (`₹/day`) and dynamic daily safe spend allowances based on remaining days in the month.
+- **Interactive Drag & Drop Hub**: Drag-and-drop expense reassignment across categories and batch category merging.
 - **Automated EMI Schedule Engine**: Convert any one-off expense into recurring monthly installments across 3 to 36 months.
 - **Smart Budget Rollover**: Automatically calculates previous month surpluses and rolls unused budget into the current month.
 - **Macro Spending Intelligence (`/analytics`)**: Lifetime spending trajectories, category breakdowns, payment mode metrics, and searchable transaction ledger.
