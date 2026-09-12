@@ -11,6 +11,7 @@ import MonthPickerModal from '@/components/MonthPickerModal';
 import SpendingAnalyticsCharts from '@/components/SpendingAnalyticsCharts';
 import GlobalSearchModal from '@/components/GlobalSearchModal';
 import Footer from '@/components/Footer';
+import LandingPage from '@/components/LandingPage';
 import { exportToCSV, exportToJSON } from '@/lib/export';
 import {
   Plus,
@@ -262,13 +263,6 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Redirect to /auth if not logged in
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace('/auth');
-    }
-  }, [user, authLoading, router]);
-
   // Monthly calculations based on active effective budget (base + rollover)
   const totalSpentThisMonth = categories.reduce((sum, cat) => sum + cat.spent, 0);
   const activeBudget = effectiveBudget ?? monthlyBudget;
@@ -324,7 +318,15 @@ export default function Home() {
     };
   }, [effectiveBudget, monthlyBudget, selectedMonth, totalSpentThisMonth]);
 
-  if (authLoading || initialLoading || (!user && !loading)) {
+  if (authLoading) {
+    return <PageSkeleton />;
+  }
+
+  if (!user) {
+    return <LandingPage />;
+  }
+
+  if (initialLoading || loading) {
     return <PageSkeleton />;
   }
 

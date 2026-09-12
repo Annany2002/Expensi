@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Image from 'next/image';
 import { useStore } from '@/context/StoreContext';
 import {
@@ -153,17 +154,23 @@ export default function AuthPage() {
       <div className="glass-panel w-full max-w-md rounded-2xl p-5 shadow-2xl sm:rounded-3xl sm:p-8">
         {/* Brand */}
         <div className="mb-6 flex flex-col items-center text-center sm:mb-8">
-          <Image
-            src="/logo.svg"
-            alt="Expensi Logo"
-            width={56}
-            height={56}
-            priority
-            className="mb-3 rounded-2xl shadow-lg shadow-indigo-500/25 sm:mb-4 sm:h-16 sm:w-16"
-          />
-          <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-900 sm:mb-2 sm:text-3xl dark:text-white">
-            Expensi
-          </h1>
+          <Link
+            href="/"
+            className="group flex flex-col items-center transition-opacity hover:opacity-90"
+            title="Back to Home"
+          >
+            <Image
+              src="/logo.svg"
+              alt="Expensi Logo"
+              width={56}
+              height={56}
+              priority
+              className="mb-3 rounded-2xl shadow-lg shadow-indigo-500/25 transition-transform group-hover:scale-105 sm:mb-4 sm:h-16 sm:w-16"
+            />
+            <h1 className="mb-1 text-2xl font-black tracking-tight text-slate-900 transition-colors group-hover:text-indigo-600 sm:mb-2 sm:text-3xl dark:text-white dark:group-hover:text-indigo-400">
+              Expensi
+            </h1>
+          </Link>
           <p className="text-[11px] font-medium text-slate-500 sm:text-xs dark:text-slate-400">
             {isLogin
               ? 'Sign in to access your personal expense dashboard'
