@@ -19,8 +19,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar,
-  CreditCard,
-  TrendingUp,
   X,
   Check,
   RotateCcw,
@@ -155,7 +153,6 @@ export default function Home() {
     effectiveBudget,
     enableRollover,
     toggleRollover,
-    rolloverSurplus,
     previousMonthSurplus,
     setMonthlyBudget,
     stats,
@@ -636,11 +633,11 @@ export default function Home() {
           {/* Ambient Card Background Glow */}
           <div className="pointer-events-none absolute -top-24 -right-24 h-56 w-56 rounded-full bg-indigo-500/10 blur-3xl dark:bg-indigo-500/15" />
 
-          <div className="space-y-3">
+          <div>
             {/* Header / Limit Title & Settings */}
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
+            <div className="flex h-7 items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
                   {monthTitle} Spending
                 </span>
                 <button
@@ -648,10 +645,10 @@ export default function Home() {
                     setIsEditingBudget(true);
                     setNewBudget(monthlyBudget !== null ? monthlyBudget.toString() : '');
                   }}
-                  className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-white"
+                  className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-white"
                   title="Configure Monthly Budget"
                 >
-                  <Settings size={13} />
+                  <Settings size={12} />
                 </button>
               </div>
 
@@ -662,33 +659,28 @@ export default function Home() {
               )}
             </div>
 
-            {/* Total Spent Amount & Inline Rollover Badge */}
-            <div>
-              <div className="flex flex-wrap items-baseline gap-2">
+            {/* Total Spent Amount & Subtitle */}
+            <div className="mt-3">
+              <div className="flex items-baseline gap-2">
                 <h2
                   className={`text-3xl font-black tracking-tight sm:text-4xl ${isOverBudget ? 'text-rose-600 dark:text-rose-400' : 'bg-linear-to-r from-slate-950 via-slate-800 to-slate-700 bg-clip-text text-transparent dark:from-white dark:via-slate-100 dark:to-slate-300'}`}
                 >
                   {formatINR(totalSpentThisMonth)}
                 </h2>
                 {hasBudget && (
-                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    <span>of {formatINR(activeBudget || 0)}</span>
-                    {hasBaseBudget && rolloverSurplus > 0 && (
-                      <span className="ml-1.5 font-bold text-indigo-600 dark:text-indigo-400">
-                        ({formatINR(monthlyBudget)} base + {formatINR(rolloverSurplus)} rollover)
-                      </span>
-                    )}
-                  </div>
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                    of {formatINR(activeBudget || 0)}
+                  </span>
                 )}
               </div>
 
-              {/* Inline Rollover Badge (compact interactive pill) */}
-              {previousMonthSurplus && previousMonthSurplus.surplus > 0 && (
-                <div className="mt-2 flex items-center gap-2">
+              {/* Clean Single-Row Subtitle */}
+              <div className="mt-1 flex h-6 items-center">
+                {previousMonthSurplus && previousMonthSurplus.surplus > 0 ? (
                   <button
                     type="button"
                     onClick={handleToggleRolloverWithToast}
-                    className={`inline-flex items-center gap-2 rounded-xl border px-2.5 py-1 text-[11px] font-bold backdrop-blur-md transition-all ${
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold backdrop-blur-md transition-all ${
                       enableRollover
                         ? 'border-indigo-200/90 bg-indigo-50/80 text-indigo-700 shadow-2xs hover:bg-indigo-100/90 dark:border-indigo-500/30 dark:bg-indigo-950/40 dark:text-indigo-200 dark:hover:border-indigo-400/50 dark:hover:bg-indigo-900/50'
                         : 'border-slate-200 bg-slate-100/80 text-slate-500 hover:bg-slate-200/70 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800/60'
@@ -696,7 +688,7 @@ export default function Home() {
                     title={enableRollover ? 'Rollover active (click to pause)' : 'Rollover paused (click to enable)'}
                   >
                     <Zap
-                      size={12}
+                      size={11}
                       className={
                         enableRollover
                           ? 'text-indigo-600 dark:text-indigo-400'
@@ -705,7 +697,7 @@ export default function Home() {
                     />
                     <span>+{formatINR(previousMonthSurplus.surplus)} from {previousMonthSurplus.monthName}</span>
                     <span
-                      className={`rounded-md px-1.5 py-0.5 text-[9px] font-extrabold uppercase transition-colors ${
+                      className={`rounded-md px-1.5 py-0.2 text-[9px] font-extrabold uppercase transition-colors ${
                         enableRollover
                           ? 'border border-indigo-200/80 bg-indigo-100/90 text-indigo-800 dark:border-indigo-700/50 dark:bg-indigo-800/50 dark:text-indigo-200'
                           : 'border border-slate-300/80 bg-slate-200/80 text-slate-600 dark:border-slate-700/50 dark:bg-slate-800/70 dark:text-slate-300'
@@ -714,13 +706,17 @@ export default function Home() {
                       {enableRollover ? 'Active ✓' : 'Paused'}
                     </span>
                   </button>
-                </div>
-              )}
+                ) : (
+                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                    {hasBudget ? `Base budget: ${formatINR(monthlyBudget || 0)}` : 'No monthly limit configured'}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Budget Progress or Edit Form */}
-          <div className="mt-4">
+          <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800/60">
             {isEditingBudget ? (
               <form
                 onSubmit={handleUpdateBudget}
@@ -777,9 +773,9 @@ export default function Home() {
                 </div>
               </form>
             ) : hasBudget ? (
-              <div className="space-y-2.5">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
+                  <span className="font-semibold text-slate-500 dark:text-slate-400">
                     Remaining:{' '}
                     <span
                       className={
@@ -798,21 +794,21 @@ export default function Home() {
                   </span>
                 </div>
 
-                <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800/80">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800/80">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
                       percentage > 100
-                        ? 'bg-linear-to-r from-rose-500 to-red-600 shadow-md shadow-rose-500/40'
+                        ? 'bg-linear-to-r from-rose-500 to-red-600 shadow-xs shadow-rose-500/40'
                         : percentage > 85
-                          ? 'bg-linear-to-r from-amber-400 via-orange-500 to-rose-500 shadow-md shadow-amber-500/30'
-                          : 'bg-linear-to-r from-indigo-500 via-purple-500 to-emerald-400 shadow-md shadow-indigo-500/30'
+                          ? 'bg-linear-to-r from-amber-400 via-orange-500 to-rose-500 shadow-xs shadow-amber-500/30'
+                          : 'bg-linear-to-r from-indigo-500 via-purple-500 to-emerald-400 shadow-xs shadow-indigo-500/30'
                     }`}
                     style={{ width: `${Math.min(percentage, 100)}%` }}
                   />
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center justify-between py-0.5">
                 <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
                   No monthly spending limit configured.
                 </p>
@@ -833,20 +829,20 @@ export default function Home() {
           {/* Ambient Card Background Glow */}
           <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-emerald-500/10 blur-3xl dark:bg-emerald-500/15" />
 
-          <div className="space-y-3">
+          <div>
             {/* Header / Status Badge */}
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
+            <div className="flex h-7 items-center justify-between">
+              <span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
                 Daily Safe Pace
               </span>
               {runwayStats && (
                 runwayStats.isPaceOver ? (
-                  <span className="flex items-center gap-1 rounded-full border border-amber-200/80 bg-amber-50/90 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 shadow-2xs dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-300">
+                  <span className="flex items-center gap-1 rounded-full border border-amber-200/80 bg-amber-50/90 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 shadow-2xs dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-300">
                     <AlertTriangle size={11} />
                     Pace: +{formatINR(Math.round(runwayStats.paceDiff))}
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1 rounded-full border border-emerald-200/80 bg-emerald-50/90 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 shadow-2xs dark:border-emerald-900/50 dark:bg-emerald-950/50 dark:text-emerald-300">
+                  <span className="flex items-center gap-1 rounded-full border border-emerald-200/80 bg-emerald-50/90 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 shadow-2xs dark:border-emerald-900/50 dark:bg-emerald-950/50 dark:text-emerald-300">
                     <CheckCircle2 size={11} />
                     On Track
                   </span>
@@ -855,21 +851,23 @@ export default function Home() {
             </div>
 
             {/* Main Daily Allowance Metric */}
-            <div>
+            <div className="mt-3">
               <div className="flex items-baseline gap-1">
                 <h3 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl dark:text-white">
                   {runwayStats ? formatINR(Math.round(runwayStats.safeDailyAllowance)) : '₹0'}
                 </h3>
                 <span className="text-xs font-bold text-slate-500 dark:text-slate-400">/day</span>
               </div>
-              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+
+              {/* Clean Single-Row Subtitle */}
+              <div className="mt-1 flex h-6 items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
                 {isCurrentMonthViewed ? (
                   <>
-                    <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
-                      <Calendar size={11} className="text-indigo-500" />
+                    <Calendar size={12} className="shrink-0 text-indigo-500 dark:text-indigo-400" />
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">
                       Today: {todayFormatted}
                     </span>
-                    <span>•</span>
+                    <span className="text-slate-300 dark:text-slate-600">•</span>
                     <span className="font-semibold text-indigo-600 dark:text-indigo-400">
                       {runwayStats && runwayStats.daysRemaining > 0
                         ? `${runwayStats.daysRemaining} days left`
@@ -887,35 +885,47 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Runway Velocity Comparison Widget */}
-          <div className="mt-4 rounded-2xl border border-slate-200/80 bg-white/60 p-3 text-xs shadow-2xs backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-800/40">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                Current Burn Rate
-              </span>
-              <span className="font-bold text-slate-900 dark:text-white">
-                {runwayStats ? formatINR(Math.round(runwayStats.dailyAverage)) : '₹0'}/day
-              </span>
-            </div>
-            {/* Visual Burn Meter: safe allowance vs average burn */}
-            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800/80">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${
-                  runwayStats?.isPaceOver
-                    ? 'bg-amber-500 shadow-xs shadow-amber-500/40'
-                    : 'bg-emerald-500 shadow-xs shadow-emerald-500/40'
-                }`}
-                style={{
-                  width:
-                    runwayStats && runwayStats.safeDailyAllowance > 0
-                      ? `${Math.min(Math.round((runwayStats.dailyAverage / (runwayStats.safeDailyAllowance * 1.5)) * 100), 100)}%`
-                      : '0%',
-                }}
-              />
-            </div>
-            <div className="mt-1.5 flex items-center justify-between text-[10px] font-medium text-slate-400 dark:text-slate-500">
-              <span>Target: {runwayStats ? formatINR(Math.round(runwayStats.safeDailyAllowance)) : '₹0'}/d</span>
-              <span>Actual: {runwayStats ? formatINR(Math.round(runwayStats.dailyAverage)) : '₹0'}/d</span>
+          {/* Runway Velocity Comparison */}
+          <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800/60">
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-slate-500 dark:text-slate-400">
+                  Burn Rate:{' '}
+                  <span className="font-black text-slate-900 dark:text-white">
+                    {runwayStats ? formatINR(Math.round(runwayStats.dailyAverage)) : '₹0'}/day
+                  </span>
+                </span>
+                <span
+                  className={`font-bold ${
+                    runwayStats?.isPaceOver
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-emerald-600 dark:text-emerald-400'
+                  }`}
+                >
+                  {runwayStats
+                    ? runwayStats.isPaceOver
+                      ? `+${formatINR(Math.round(runwayStats.paceDiff))}/d over pace`
+                      : 'Within safe pace'
+                    : '₹0/day'}
+                </span>
+              </div>
+
+              {/* Visual Burn Meter: matching Card 1 track */}
+              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800/80">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    runwayStats?.isPaceOver
+                      ? 'bg-linear-to-r from-amber-500 to-orange-500 shadow-xs shadow-amber-500/40'
+                      : 'bg-linear-to-r from-emerald-500 to-teal-400 shadow-xs shadow-emerald-500/40'
+                  }`}
+                  style={{
+                    width:
+                      runwayStats && runwayStats.safeDailyAllowance > 0
+                        ? `${Math.min(Math.round((runwayStats.dailyAverage / (runwayStats.safeDailyAllowance * 1.5)) * 100), 100)}%`
+                        : '0%',
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -925,69 +935,95 @@ export default function Home() {
           {/* Ambient Card Background Glow */}
           <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-purple-500/10 blur-3xl dark:bg-purple-500/15" />
 
-          <div className="space-y-3">
-            {/* Header with Analytics navigation link */}
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
+          <div>
+            {/* Header with matching Analytics pill badge */}
+            <div className="flex h-7 items-center justify-between">
+              <span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
                 All-Time Total
               </span>
               <Link
                 href="/analytics"
-                className="group flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-bold text-indigo-600 transition-colors hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/50"
+                className="group flex items-center gap-1 rounded-full border border-slate-200/90 bg-white/80 px-2.5 py-0.5 text-[11px] font-bold text-indigo-600 shadow-2xs backdrop-blur-md transition-all hover:border-indigo-300 hover:bg-indigo-50/60 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-indigo-400 dark:hover:border-indigo-500/50 dark:hover:bg-slate-700/60"
                 title="View Analytics Hub"
               >
                 <span>Analytics</span>
-                <ArrowUpRight size={12} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                <ArrowUpRight size={11} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
             </div>
 
-            {/* Total Spent */}
-            <div>
-              <h3 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl dark:text-white">
-                {formatINR(stats.allTimeTotalSpent)}
-              </h3>
-              <p className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                {stats.allTimeCount} recorded transaction{stats.allTimeCount === 1 ? '' : 's'}
-              </p>
+            {/* Total Spent Amount */}
+            <div className="mt-3">
+              <div className="flex items-baseline gap-1">
+                <h3 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+                  {formatINR(stats.allTimeTotalSpent)}
+                </h3>
+              </div>
+
+              {/* Clean Single-Row Subtitle */}
+              <div className="mt-1 flex h-6 items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                <BarChart3 size={12} className="shrink-0 text-purple-500 dark:text-purple-400" />
+                <span>
+                  {stats.allTimeCount} recorded transaction{stats.allTimeCount === 1 ? '' : 's'}
+                </span>
+              </div>
             </div>
           </div>
 
           {/* Dynamic EMIs or Avg Transaction Chip */}
-          <div className="mt-4">
+          <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800/60">
             {stats.monthEmiTotal > 0 ? (
-              <div className="flex items-center justify-between rounded-2xl border border-purple-200/80 bg-purple-50/60 p-2.5 text-xs dark:border-purple-900/50 dark:bg-purple-950/30">
-                <div className="flex items-center gap-2">
-                  <div className="rounded-lg bg-purple-100 p-1 text-purple-600 dark:bg-purple-900/60 dark:text-purple-400">
-                    <CreditCard size={13} />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-purple-600 uppercase dark:text-purple-400">
-                      Active EMIs
-                    </p>
-                    <p className="font-bold text-slate-900 dark:text-white">
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-500 dark:text-slate-400">
+                    Active EMIs:{' '}
+                    <span className="font-black text-purple-600 dark:text-purple-400">
                       {formatINR(stats.monthEmiTotal)}
-                    </p>
-                  </div>
-                </div>
-                <span className="rounded-lg bg-white/80 px-2 py-0.5 text-[10px] font-bold text-purple-700 shadow-2xs dark:bg-purple-900/80 dark:text-purple-300">
-                  {stats.monthEmiCount} installment{stats.monthEmiCount === 1 ? '' : 's'}
-                </span>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white/60 p-2.5 text-xs dark:border-slate-800/80 dark:bg-slate-800/40">
-                <div className="flex items-center gap-2">
-                  <div className="rounded-lg bg-indigo-50 p-1 text-indigo-600 dark:bg-indigo-950/70 dark:text-indigo-400">
-                    <TrendingUp size={13} />
-                  </div>
-                  <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-                    Avg / Transaction
+                    </span>
+                  </span>
+                  <span className="font-bold text-slate-700 dark:text-slate-300">
+                    {stats.monthEmiCount} installment{stats.monthEmiCount === 1 ? '' : 's'}
                   </span>
                 </div>
-                <span className="font-bold text-slate-900 dark:text-white">
-                  {stats.allTimeCount > 0
-                    ? formatINR(Math.round(stats.allTimeTotalSpent / stats.allTimeCount))
-                    : '₹0'}
-                </span>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800/80">
+                  <div
+                    className="h-full rounded-full bg-linear-to-r from-purple-500 to-indigo-500 shadow-xs shadow-purple-500/30 transition-all duration-500"
+                    style={{
+                      width:
+                        totalSpentThisMonth > 0
+                          ? `${Math.min(Math.round((stats.monthEmiTotal / totalSpentThisMonth) * 100), 100)}%`
+                          : '0%',
+                    }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-500 dark:text-slate-400">
+                    Avg / Txn:{' '}
+                    <span className="font-black text-slate-900 dark:text-white">
+                      {stats.allTimeCount > 0
+                        ? formatINR(Math.round(stats.allTimeTotalSpent / stats.allTimeCount))
+                        : '₹0'}
+                    </span>
+                  </span>
+                  <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                    {stats.allTimeTotalSpent > 0
+                      ? `${Math.round((totalSpentThisMonth / stats.allTimeTotalSpent) * 100)}% this mo`
+                      : '0%'}
+                  </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800/80">
+                  <div
+                    className="h-full rounded-full bg-linear-to-r from-indigo-500 to-purple-500 shadow-xs shadow-indigo-500/30 transition-all duration-500"
+                    style={{
+                      width:
+                        stats.allTimeTotalSpent > 0
+                          ? `${Math.min(Math.round((totalSpentThisMonth / stats.allTimeTotalSpent) * 100), 100)}%`
+                          : '0%',
+                    }}
+                  />
+                </div>
               </div>
             )}
           </div>
