@@ -10,6 +10,7 @@ import CategoryHubModal from '@/components/CategoryHubModal';
 import MonthPickerModal from '@/components/MonthPickerModal';
 import SpendingAnalyticsCharts from '@/components/SpendingAnalyticsCharts';
 import GlobalSearchModal from '@/components/GlobalSearchModal';
+import Footer from '@/components/Footer';
 import { exportToCSV, exportToJSON } from '@/lib/export';
 import {
   Plus,
@@ -418,7 +419,7 @@ export default function Home() {
   };
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-400 space-y-5 px-3 py-3 text-slate-900 sm:space-y-6 sm:px-6 sm:py-5 md:px-8 md:py-6 lg:px-10 dark:text-white">
+    <main className="mx-auto min-h-screen w-full max-w-400 space-y-5 px-3 pt-3 pb-0 text-slate-900 sm:space-y-6 sm:px-6 sm:pt-5 sm:pb-0 md:px-8 md:pt-6 md:pb-0 lg:px-10 dark:text-white">
       {/* Top Navbar Glass Toolbar */}
       <header className="glass-panel relative z-30 flex flex-col justify-between gap-3 rounded-2xl p-3.5 shadow-xl sm:rounded-3xl sm:p-4 md:flex-row md:items-center">
         {/* Tier 1: Brand & User Actions on small mobile, or Left Brand on desktop */}
@@ -1159,9 +1160,12 @@ export default function Home() {
       </section>
 
       {/* Interactive Spending Analytics & Charts Section */}
-      <section>
+      <section id="analytics-section">
         <SpendingAnalyticsCharts currentMonth={selectedMonth} />
       </section>
+
+      {/* Footer */}
+      <Footer />
 
       {/* Modals */}
       <CategoryHubModal
