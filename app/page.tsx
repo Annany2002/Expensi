@@ -182,6 +182,14 @@ export default function Home() {
     return Array.from(set).sort().reverse();
   }, [stats.recordedMonths, expenses, selectedMonth]);
 
+  const todayFormatted = useMemo(() => {
+    return new Date().toLocaleDateString('en-IN', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    });
+  }, []);
+
   // Keyboard shortcut: Cmd+K / Ctrl+K for Global Search
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -854,11 +862,28 @@ export default function Home() {
                 </h3>
                 <span className="text-xs font-bold text-slate-500 dark:text-slate-400">/day</span>
               </div>
-              <p className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                {runwayStats && runwayStats.daysRemaining > 0
-                  ? `${runwayStats.daysRemaining} days remaining in ${monthTitle}`
-                  : `Cycle ended for ${monthTitle}`}
-              </p>
+              <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                {isCurrentMonthViewed ? (
+                  <>
+                    <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
+                      <Calendar size={11} className="text-indigo-500" />
+                      Today: {todayFormatted}
+                    </span>
+                    <span>•</span>
+                    <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                      {runwayStats && runwayStats.daysRemaining > 0
+                        ? `${runwayStats.daysRemaining} days left`
+                        : 'Cycle ended'}
+                    </span>
+                  </>
+                ) : (
+                  <span>
+                    {runwayStats && runwayStats.daysRemaining > 0
+                      ? `${runwayStats.daysRemaining} days remaining in ${monthTitle}`
+                      : `Cycle ended for ${monthTitle}`}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
