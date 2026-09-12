@@ -360,9 +360,7 @@ export default function CategoryHubModal({
     }
     setCategoryMergeConfirm(null);
     try {
-      await Promise.all(
-        expensesToMove.map((e) => editExpense(e.id, { categoryId: target.id })),
-      );
+      await Promise.all(expensesToMove.map((e) => editExpense(e.id, { categoryId: target.id })));
       toast.success(
         'Expenses Reassigned',
         `Moved ${expensesToMove.length} expense${expensesToMove.length === 1 ? '' : 's'} from "${source.name}" to "${target.name}"`,
@@ -690,7 +688,10 @@ export default function CategoryHubModal({
                             setOptimisticMovingExpenseIds((prev) => [...prev, data.expenseId]);
                             try {
                               await editExpense(data.expenseId, { categoryId: c.id });
-                              toast.success(`Moved to ${c.name}`, `"${data.description}" reassigned to ${c.name}`);
+                              toast.success(
+                                `Moved to ${c.name}`,
+                                `"${data.description}" reassigned to ${c.name}`,
+                              );
                             } catch (err) {
                               console.error('Drop error:', err);
                               toast.error('Move failed', 'Could not reassign expense');
@@ -714,21 +715,21 @@ export default function CategoryHubModal({
                         }
                       }}
                       onClick={() => setSelectedCatId(c.id)}
-                      className={`group relative flex min-w-35 shrink-0 cursor-pointer items-center justify-between rounded-xl p-2.5 transition-all duration-150 sm:min-w-40 sm:rounded-2xl sm:p-3 md:w-full select-none ${
+                      className={`group relative flex min-w-35 shrink-0 cursor-pointer items-center justify-between rounded-xl p-2.5 transition-all duration-150 select-none sm:min-w-40 sm:rounded-2xl sm:p-3 md:w-full ${
                         dragOverCatId === c.id
-                          ? 'border-2 border-dashed border-indigo-500 bg-indigo-500/10 ring-4 ring-indigo-500/20 shadow-lg dark:bg-indigo-950/80 dark:border-indigo-400'
+                          ? 'border-2 border-dashed border-indigo-500 bg-indigo-500/10 shadow-lg ring-4 ring-indigo-500/20 dark:border-indigo-400 dark:bg-indigo-950/80'
                           : isSelected
                             ? 'border border-indigo-500/50 bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
                             : 'border border-slate-200/80 bg-white/70 text-slate-700 hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white'
-                      } ${draggedCategory?.id === c.id ? 'opacity-40 border-dashed scale-95' : ''}`}
+                      } ${draggedCategory?.id === c.id ? 'scale-95 border-dashed opacity-40' : ''}`}
                     >
                       {dragOverCatId === c.id && (
-                        <span className="pointer-events-none absolute -top-2.5 right-3 rounded-full bg-indigo-600 px-2 py-0.5 text-[9px] font-bold text-white shadow-lg animate-pulse dark:bg-indigo-500">
+                        <span className="pointer-events-none absolute -top-2.5 right-3 animate-pulse rounded-full bg-indigo-600 px-2 py-0.5 text-[9px] font-bold text-white shadow-lg dark:bg-indigo-500">
                           {draggedExpense ? `Drop to move here` : `Drop to merge`}
                         </span>
                       )}
                       <div
-                        className={`flex items-center justify-between w-full ${
+                        className={`flex w-full items-center justify-between ${
                           isDraggingAny ? 'pointer-events-none' : ''
                         }`}
                       >
@@ -1196,7 +1197,8 @@ export default function CategoryHubModal({
                               if (ghost) {
                                 e.dataTransfer.setDragImage(ghost, 15, 15);
                                 setTimeout(() => {
-                                  if (document.body.contains(ghost)) document.body.removeChild(ghost);
+                                  if (document.body.contains(ghost))
+                                    document.body.removeChild(ghost);
                                 }, 0);
                               }
                             }}
@@ -1206,7 +1208,7 @@ export default function CategoryHubModal({
                             }}
                             className={`glass-card-interactive group flex items-center justify-between rounded-2xl p-3.5 transition-all select-none ${
                               draggedExpense?.id === expense.id
-                                ? 'opacity-30 border-2 border-dashed border-indigo-400 dark:border-indigo-500 scale-[0.99]'
+                                ? 'scale-[0.99] border-2 border-dashed border-indigo-400 opacity-30 dark:border-indigo-500'
                                 : ''
                             }`}
                           >
@@ -1433,10 +1435,18 @@ export default function CategoryHubModal({
                 Transfer Expenses?
               </h4>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              Move all expenses for <span className="font-semibold text-slate-700 dark:text-slate-200">{monthTitle}</span> from{' '}
-              <span className="font-bold text-slate-800 dark:text-white">{categoryMergeConfirm.source.name}</span> into{' '}
-              <span className="font-bold text-indigo-600 dark:text-indigo-400">{categoryMergeConfirm.target.name}</span>?
+            <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+              Move all expenses for{' '}
+              <span className="font-semibold text-slate-700 dark:text-slate-200">{monthTitle}</span>{' '}
+              from{' '}
+              <span className="font-bold text-slate-800 dark:text-white">
+                {categoryMergeConfirm.source.name}
+              </span>{' '}
+              into{' '}
+              <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                {categoryMergeConfirm.target.name}
+              </span>
+              ?
             </p>
             <div className="mt-4 flex gap-2">
               <button

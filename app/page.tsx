@@ -742,7 +742,8 @@ export default function Home() {
                   <>
                     <Zap size={12} className="shrink-0 text-indigo-500 dark:text-indigo-400" />
                     <span className="font-semibold text-slate-700 dark:text-slate-300">
-                      +{formatINR(previousMonthSurplus.surplus)} from {previousMonthSurplus.monthName}
+                      +{formatINR(previousMonthSurplus.surplus)} from{' '}
+                      {previousMonthSurplus.monthName}
                     </span>
                     <span className="text-slate-300 dark:text-slate-600">•</span>
                     <button
@@ -753,14 +754,20 @@ export default function Home() {
                           ? 'text-indigo-600 dark:text-indigo-400'
                           : 'text-slate-400 dark:text-slate-500'
                       }`}
-                      title={enableRollover ? 'Rollover active (click to pause)' : 'Rollover paused (click to enable)'}
+                      title={
+                        enableRollover
+                          ? 'Rollover active (click to pause)'
+                          : 'Rollover paused (click to enable)'
+                      }
                     >
                       {enableRollover ? 'Active ✓' : 'Paused'}
                     </button>
                   </>
                 ) : (
                   <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                    {hasBudget ? `Base budget: ${formatINR(monthlyBudget || 0)}` : 'No monthly limit configured'}
+                    {hasBudget
+                      ? `Base budget: ${formatINR(monthlyBudget || 0)}`
+                      : 'No monthly limit configured'}
                   </span>
                 )}
               </div>
@@ -887,8 +894,8 @@ export default function Home() {
               <span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
                 Daily Safe Pace
               </span>
-              {runwayStats && (
-                runwayStats.isPaceOver ? (
+              {runwayStats &&
+                (runwayStats.isPaceOver ? (
                   <span className="flex items-center gap-1 rounded-full border border-amber-200/80 bg-amber-50/90 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 shadow-2xs dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-300">
                     <AlertTriangle size={11} />
                     Proj. Overspend: +{formatINR(Math.round(runwayStats.projectedOverspend))}
@@ -898,8 +905,7 @@ export default function Home() {
                     <CheckCircle2 size={11} />
                     On Track
                   </span>
-                )
-              )}
+                ))}
             </div>
 
             {/* Main Daily Allowance Metric */}
@@ -999,7 +1005,10 @@ export default function Home() {
                 title="View Analytics Hub"
               >
                 <span>Analytics</span>
-                <ArrowUpRight size={11} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                <ArrowUpRight
+                  size={11}
+                  className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
               </Link>
             </div>
 

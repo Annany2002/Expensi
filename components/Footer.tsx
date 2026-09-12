@@ -69,9 +69,9 @@ export default function Footer({ onScrollToTop }: FooterProps) {
       </div>
 
       {/* Giant Brand Typography Hugging the Bottom Edge */}
-      <div className="relative select-none text-center pointer-events-none pt-2 sm:pt-4 pb-0 -mb-2 sm:-mb-4">
+      <div className="pointer-events-none relative -mb-2 pt-2 pb-0 text-center select-none sm:-mb-4 sm:pt-4">
         <h2
-          className="font-black tracking-tighter leading-none text-transparent text-center bg-linear-to-b from-indigo-600 via-indigo-500 to-indigo-500/20 dark:from-[#c4b5fd] dark:via-[#818cf8] dark:to-[#6366f1]/20 bg-clip-text"
+          className="bg-linear-to-b from-indigo-600 via-indigo-500 to-indigo-500/20 bg-clip-text text-center leading-none font-black tracking-tighter text-transparent dark:from-[#c4b5fd] dark:via-[#818cf8] dark:to-[#6366f1]/20"
           style={{
             fontSize: 'clamp(5rem, 16vw, 14.5rem)',
             WebkitMaskImage:
