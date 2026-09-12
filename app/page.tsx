@@ -623,12 +623,12 @@ export default function Home() {
 
       {/* Metrics Bento Grid */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-        {/* Main Hero Card: Month Spending, Limit, Surplus Rollover, and Runway Forecast (8 cols) */}
-        <div className="glass-panel relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-6 lg:col-span-8">
+        {/* Card 1: Month Spending, Limit, and Progress (5 cols on lg) */}
+        <div className="glass-panel relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-5 lg:col-span-5">
           {/* Ambient Card Background Glow */}
           <div className="pointer-events-none absolute -top-24 -right-24 h-56 w-56 rounded-full bg-indigo-500/10 blur-3xl dark:bg-indigo-500/15" />
 
-          <div>
+          <div className="space-y-3">
             {/* Header / Limit Title & Settings */}
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -648,79 +648,75 @@ export default function Home() {
               </div>
 
               {hasBudget && (
-                <div className="flex items-center gap-2">
-                  <span className="rounded-full border border-slate-200/90 bg-white/80 px-2.5 py-0.5 text-[11px] font-bold text-slate-700 shadow-2xs backdrop-blur-md sm:px-3 sm:py-1 sm:text-xs dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-200">
-                    Budget: {formatINR(activeBudget || 0)}
-                  </span>
-                </div>
+                <span className="rounded-full border border-slate-200/90 bg-white/80 px-2.5 py-0.5 text-[11px] font-bold text-slate-700 shadow-2xs backdrop-blur-md dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-200">
+                  Budget: {formatINR(activeBudget || 0)}
+                </span>
               )}
             </div>
 
-            {/* Total Spent Amount & Subtitle */}
-            <div className="mt-2.5 flex flex-wrap items-baseline gap-2 sm:mt-3 sm:gap-3">
-              <h2
-                className={`text-3xl font-black tracking-tight sm:text-5xl ${isOverBudget ? 'text-rose-600 dark:text-rose-400' : 'bg-linear-to-r from-slate-950 via-slate-800 to-slate-700 bg-clip-text text-transparent dark:from-white dark:via-slate-100 dark:to-slate-300'}`}
-              >
-                {formatINR(totalSpentThisMonth)}
-              </h2>
-              {hasBudget && (
-                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  <span>of {formatINR(activeBudget || 0)}</span>
-                  {hasBaseBudget && rolloverSurplus > 0 && (
-                    <span className="ml-1.5 font-bold text-indigo-600 dark:text-indigo-400">
-                      ({formatINR(monthlyBudget)} base + {formatINR(rolloverSurplus)} rollover)
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Previous Month Surplus Rollover Banner (Feature 3) */}
-            {previousMonthSurplus && previousMonthSurplus.surplus > 0 && (
-              <div className="mt-3 flex flex-col justify-between gap-3 rounded-2xl border border-indigo-200/80 bg-indigo-50/70 p-3 shadow-2xs backdrop-blur-md sm:mt-3.5 sm:flex-row sm:items-center dark:border-indigo-900/60 dark:bg-indigo-950/30">
-                <div className="flex items-center gap-2.5">
-                  <div className="rounded-xl bg-indigo-100 p-1.5 text-indigo-600 dark:bg-indigo-900/60 dark:text-indigo-400">
-                    <Zap size={14} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                        {formatINR(previousMonthSurplus.surplus)} Surplus from{' '}
-                        {previousMonthSurplus.monthName}
-                      </span>
-                      <span className="py-0.2 rounded-md bg-indigo-100 px-1.5 text-[9px] font-extrabold text-indigo-700 dark:bg-indigo-900/80 dark:text-indigo-300">
-                        Rollover
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      {enableRollover
-                        ? 'Added to your available spending pool for this month.'
-                        : 'Rollover is currently paused.'}
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleToggleRolloverWithToast}
-                  className={`w-full rounded-xl px-3 py-1.5 text-xs font-bold transition-all sm:w-auto ${
-                    enableRollover
-                      ? 'bg-indigo-600 text-white shadow-xs hover:bg-indigo-500'
-                      : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-                  }`}
+            {/* Total Spent Amount & Inline Rollover Badge */}
+            <div>
+              <div className="flex flex-wrap items-baseline gap-2">
+                <h2
+                  className={`text-3xl font-black tracking-tight sm:text-4xl ${isOverBudget ? 'text-rose-600 dark:text-rose-400' : 'bg-linear-to-r from-slate-950 via-slate-800 to-slate-700 bg-clip-text text-transparent dark:from-white dark:via-slate-100 dark:to-slate-300'}`}
                 >
-                  {enableRollover ? 'Rollover Active ✓' : 'Enable Rollover +'}
-                </button>
+                  {formatINR(totalSpentThisMonth)}
+                </h2>
+                {hasBudget && (
+                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    <span>of {formatINR(activeBudget || 0)}</span>
+                    {hasBaseBudget && rolloverSurplus > 0 && (
+                      <span className="ml-1.5 font-bold text-indigo-600 dark:text-indigo-400">
+                        ({formatINR(monthlyBudget)} base + {formatINR(rolloverSurplus)} rollover)
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Inline Rollover Badge (compact interactive pill) */}
+              {previousMonthSurplus && previousMonthSurplus.surplus > 0 && (
+                <div className="mt-2 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleToggleRolloverWithToast}
+                    className={`inline-flex items-center gap-2 rounded-xl border px-2.5 py-1 text-[11px] font-bold backdrop-blur-md transition-all ${
+                      enableRollover
+                        ? 'border-indigo-200/90 bg-indigo-50/80 text-indigo-700 shadow-2xs hover:bg-indigo-100/90 dark:border-indigo-500/30 dark:bg-indigo-950/40 dark:text-indigo-200 dark:hover:border-indigo-400/50 dark:hover:bg-indigo-900/50'
+                        : 'border-slate-200 bg-slate-100/80 text-slate-500 hover:bg-slate-200/70 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800/60'
+                    }`}
+                    title={enableRollover ? 'Rollover active (click to pause)' : 'Rollover paused (click to enable)'}
+                  >
+                    <Zap
+                      size={12}
+                      className={
+                        enableRollover
+                          ? 'text-indigo-600 dark:text-indigo-400'
+                          : 'text-slate-400 dark:text-slate-500'
+                      }
+                    />
+                    <span>+{formatINR(previousMonthSurplus.surplus)} from {previousMonthSurplus.monthName}</span>
+                    <span
+                      className={`rounded-md px-1.5 py-0.5 text-[9px] font-extrabold uppercase transition-colors ${
+                        enableRollover
+                          ? 'border border-indigo-200/80 bg-indigo-100/90 text-indigo-800 dark:border-indigo-700/50 dark:bg-indigo-800/50 dark:text-indigo-200'
+                          : 'border border-slate-300/80 bg-slate-200/80 text-slate-600 dark:border-slate-700/50 dark:bg-slate-800/70 dark:text-slate-300'
+                      }`}
+                    >
+                      {enableRollover ? 'Active ✓' : 'Paused'}
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Budget Editing Form or Stats Breakdown */}
+          {/* Budget Progress or Edit Form */}
           <div className="mt-4">
             {isEditingBudget ? (
               <form
                 onSubmit={handleUpdateBudget}
-                className="animate-in fade-in space-y-2.5 rounded-2xl border border-slate-200 bg-slate-50/90 p-3 sm:p-4 dark:border-slate-700 dark:bg-slate-800/60"
+                className="animate-in fade-in space-y-2.5 rounded-2xl border border-slate-200 bg-slate-50/90 p-3 dark:border-slate-700 dark:bg-slate-800/60"
               >
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
                   Set Base Monthly Budget (leave empty to clear)
@@ -773,8 +769,7 @@ export default function Home() {
                 </div>
               </form>
             ) : hasBudget ? (
-              /* Budget Stats & Progress & Runway Forecast */
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
                     Remaining:{' '}
@@ -807,52 +802,11 @@ export default function Home() {
                     style={{ width: `${Math.min(percentage, 100)}%` }}
                   />
                 </div>
-
-                {/* Runway & Daily Pace Assistant Pill */}
-                {runwayStats && (
-                  <div className="mt-3 flex flex-col justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white/70 p-3 text-xs shadow-2xs backdrop-blur-md sm:flex-row sm:items-center sm:p-3.5 dark:border-slate-800/80 dark:bg-slate-800/50">
-                    <div className="flex items-center gap-2.5">
-                      <div className="rounded-xl bg-indigo-50 p-2 text-indigo-600 shadow-2xs dark:bg-indigo-950/70 dark:text-indigo-400">
-                        <Zap size={16} />
-                      </div>
-                      <div>
-                        <p className="font-bold text-slate-900 dark:text-white">
-                          Avg: {formatINR(Math.round(runwayStats.dailyAverage))}/day
-                        </p>
-                        {runwayStats.daysRemaining > 0 ? (
-                          <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                            Safe limit: {formatINR(Math.round(runwayStats.safeDailyAllowance))}/day
-                            ({runwayStats.daysRemaining} days left)
-                          </p>
-                        ) : (
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                            Month ended
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 self-start sm:self-auto">
-                      {runwayStats.isPaceOver ? (
-                        <span className="flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50/90 px-3 py-1 text-[11px] font-bold text-amber-700 shadow-2xs dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-300">
-                          <AlertTriangle size={12} />
-                          Pace: +{formatINR(Math.round(runwayStats.paceDiff))}
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50/90 px-3 py-1 text-[11px] font-bold text-emerald-700 shadow-2xs dark:border-emerald-900/50 dark:bg-emerald-950/50 dark:text-emerald-300">
-                          <CheckCircle2 size={12} />
-                          On Track
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             ) : (
-              /* Optional budget not set indicator */
-              <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center justify-between pt-1">
                 <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  No monthly spending limit configured for this month.
+                  No monthly spending limit configured.
                 </p>
                 <button
                   onClick={() => setIsEditingBudget(true)}
@@ -864,150 +818,231 @@ export default function Home() {
               </div>
             )}
           </div>
+        </div>
 
-          {/* Quick Categories Bar inside Hero Month Card */}
-          <div className="mt-4 border-t border-slate-200/80 pt-3.5 dark:border-slate-800/80">
+        {/* Card 2: Daily Runway & Safe Pace (4 cols on lg) */}
+        <div className="glass-panel relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-5 lg:col-span-4">
+          {/* Ambient Card Background Glow */}
+          <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-emerald-500/10 blur-3xl dark:bg-emerald-500/15" />
+
+          <div className="space-y-3">
+            {/* Header / Status Badge */}
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
-                Categories Breakdown ({categories.length})
+              <span className="text-xs font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
+                Daily Safe Pace
               </span>
-              <button
-                onClick={() => {
-                  setHubInitialCategoryId(categories[0]?.id || null);
-                  setIsCategoryHubOpen(true);
-                }}
-                className="flex items-center gap-1 text-xs font-bold text-indigo-600 transition-colors hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
-              >
-                <span>View Details & Manage</span>
-                <ArrowUpRight size={13} />
-              </button>
+              {runwayStats && (
+                runwayStats.isPaceOver ? (
+                  <span className="flex items-center gap-1 rounded-full border border-amber-200/80 bg-amber-50/90 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 shadow-2xs dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-300">
+                    <AlertTriangle size={11} />
+                    Pace: +{formatINR(Math.round(runwayStats.paceDiff))}
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 rounded-full border border-emerald-200/80 bg-emerald-50/90 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 shadow-2xs dark:border-emerald-900/50 dark:bg-emerald-950/50 dark:text-emerald-300">
+                    <CheckCircle2 size={11} />
+                    On Track
+                  </span>
+                )
+              )}
             </div>
 
-            {/* Interactive Category Mini-Chips - horizontal swipeable on mobile, wrapping on desktop */}
-            <div className="no-scrollbar mt-2.5 flex items-center gap-2 overflow-x-auto pb-1 sm:flex-wrap">
-              {categories.length === 0 ? (
+            {/* Main Daily Allowance Metric */}
+            <div>
+              <div className="flex items-baseline gap-1">
+                <h3 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+                  {runwayStats ? formatINR(Math.round(runwayStats.safeDailyAllowance)) : '₹0'}
+                </h3>
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">/day</span>
+              </div>
+              <p className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                {runwayStats && runwayStats.daysRemaining > 0
+                  ? `${runwayStats.daysRemaining} days remaining in ${monthTitle}`
+                  : `Cycle ended for ${monthTitle}`}
+              </p>
+            </div>
+          </div>
+
+          {/* Runway Velocity Comparison Widget */}
+          <div className="mt-4 rounded-2xl border border-slate-200/80 bg-white/60 p-3 text-xs shadow-2xs backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-800/40">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                Current Burn Rate
+              </span>
+              <span className="font-bold text-slate-900 dark:text-white">
+                {runwayStats ? formatINR(Math.round(runwayStats.dailyAverage)) : '₹0'}/day
+              </span>
+            </div>
+            {/* Visual Burn Meter: safe allowance vs average burn */}
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800/80">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  runwayStats?.isPaceOver
+                    ? 'bg-amber-500 shadow-xs shadow-amber-500/40'
+                    : 'bg-emerald-500 shadow-xs shadow-emerald-500/40'
+                }`}
+                style={{
+                  width:
+                    runwayStats && runwayStats.safeDailyAllowance > 0
+                      ? `${Math.min(Math.round((runwayStats.dailyAverage / (runwayStats.safeDailyAllowance * 1.5)) * 100), 100)}%`
+                      : '0%',
+                }}
+              />
+            </div>
+            <div className="mt-1.5 flex items-center justify-between text-[10px] font-medium text-slate-400 dark:text-slate-500">
+              <span>Target: {runwayStats ? formatINR(Math.round(runwayStats.safeDailyAllowance)) : '₹0'}/d</span>
+              <span>Actual: {runwayStats ? formatINR(Math.round(runwayStats.dailyAverage)) : '₹0'}/d</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: All-Time Activity & Analytics (3 cols on lg) */}
+        <div className="glass-panel relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-5 lg:col-span-3">
+          {/* Ambient Card Background Glow */}
+          <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-purple-500/10 blur-3xl dark:bg-purple-500/15" />
+
+          <div className="space-y-3">
+            {/* Header with Analytics navigation link */}
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
+                All-Time Total
+              </span>
+              <Link
+                href="/analytics"
+                className="group flex items-center gap-1 rounded-lg px-2 py-0.5 text-[11px] font-bold text-indigo-600 transition-colors hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-950/50"
+                title="View Analytics Hub"
+              >
+                <span>Analytics</span>
+                <ArrowUpRight size={12} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </Link>
+            </div>
+
+            {/* Total Spent */}
+            <div>
+              <h3 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+                {formatINR(stats.allTimeTotalSpent)}
+              </h3>
+              <p className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                {stats.allTimeCount} recorded transaction{stats.allTimeCount === 1 ? '' : 's'}
+              </p>
+            </div>
+          </div>
+
+          {/* Dynamic EMIs or Avg Transaction Chip */}
+          <div className="mt-4">
+            {stats.monthEmiTotal > 0 ? (
+              <div className="flex items-center justify-between rounded-2xl border border-purple-200/80 bg-purple-50/60 p-2.5 text-xs dark:border-purple-900/50 dark:bg-purple-950/30">
+                <div className="flex items-center gap-2">
+                  <div className="rounded-lg bg-purple-100 p-1 text-purple-600 dark:bg-purple-900/60 dark:text-purple-400">
+                    <CreditCard size={13} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-purple-600 uppercase dark:text-purple-400">
+                      Active EMIs
+                    </p>
+                    <p className="font-bold text-slate-900 dark:text-white">
+                      {formatINR(stats.monthEmiTotal)}
+                    </p>
+                  </div>
+                </div>
+                <span className="rounded-lg bg-white/80 px-2 py-0.5 text-[10px] font-bold text-purple-700 shadow-2xs dark:bg-purple-900/80 dark:text-purple-300">
+                  {stats.monthEmiCount} installment{stats.monthEmiCount === 1 ? '' : 's'}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white/60 p-2.5 text-xs dark:border-slate-800/80 dark:bg-slate-800/40">
+                <div className="flex items-center gap-2">
+                  <div className="rounded-lg bg-indigo-50 p-1 text-indigo-600 dark:bg-indigo-950/70 dark:text-indigo-400">
+                    <TrendingUp size={13} />
+                  </div>
+                  <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                    Avg / Transaction
+                  </span>
+                </div>
+                <span className="font-bold text-slate-900 dark:text-white">
+                  {stats.allTimeCount > 0
+                    ? formatINR(Math.round(stats.allTimeTotalSpent / stats.allTimeCount))
+                    : '₹0'}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Dedicated Category Breakdown Strip (Full 12 cols) */}
+        <div className="glass-panel col-span-1 flex flex-col justify-between gap-3 rounded-3xl p-3.5 sm:p-4 lg:col-span-12 lg:flex-row lg:items-center">
+          {/* Left: Category Breakdown Header */}
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="text-xs font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
+              Category Breakdown
+            </span>
+            <span className="rounded-full border border-slate-200/90 bg-white/80 px-2 py-0.5 text-[10px] font-bold text-slate-600 shadow-2xs dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+              {categories.length}
+            </span>
+          </div>
+
+          {/* Middle: Interactive Category Mini-Chips */}
+          <div className="no-scrollbar flex flex-1 items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
+            {categories.length === 0 ? (
+              <button
+                onClick={() => {
+                  setHubInitialCategoryId(null);
+                  setIsCategoryHubOpen(true);
+                }}
+                className="flex shrink-0 items-center gap-1.5 rounded-xl border border-dashed border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-500 hover:border-indigo-500 hover:text-indigo-600 dark:border-slate-700 dark:text-slate-400 dark:hover:border-indigo-400 dark:hover:text-indigo-300"
+              >
+                <Plus size={13} />
+                <span>Create First Category</span>
+              </button>
+            ) : (
+              <>
+                {categories.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => {
+                      setHubInitialCategoryId(c.id);
+                      setIsCategoryHubOpen(true);
+                    }}
+                    className="group flex shrink-0 items-center gap-2 rounded-xl border border-slate-200/90 bg-white/70 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs backdrop-blur-md transition-all hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white"
+                    title={`Click to view ${c.name} transactions & details`}
+                  >
+                    <span
+                      className="h-2 w-2 shrink-0 rounded-full shadow-2xs"
+                      style={{ backgroundColor: c.color || '#3b82f6' }}
+                    />
+                    <span>{c.name}:</span>
+                    <span className="font-extrabold text-slate-900 dark:text-white">
+                      {formatINR(c.spent)}
+                    </span>
+                  </button>
+                ))}
                 <button
                   onClick={() => {
                     setHubInitialCategoryId(null);
                     setIsCategoryHubOpen(true);
                   }}
-                  className="flex shrink-0 items-center gap-1 rounded-xl border border-dashed border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-500 hover:border-indigo-500 hover:text-indigo-600 dark:border-slate-700 dark:text-slate-400 dark:hover:border-indigo-400 dark:hover:text-indigo-300"
+                  className="flex shrink-0 items-center gap-1 rounded-xl border border-slate-200/80 bg-white/50 p-1.5 text-slate-500 hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-700/80 dark:bg-slate-800/40 dark:text-slate-400 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white"
+                  title="Add Category"
                 >
-                  <Plus size={13} />
-                  <span>Create First Category</span>
+                  <Plus size={14} />
                 </button>
-              ) : (
-                <>
-                  {categories.map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => {
-                        setHubInitialCategoryId(c.id);
-                        setIsCategoryHubOpen(true);
-                      }}
-                      className="group flex shrink-0 items-center gap-2 rounded-xl border border-slate-200/90 bg-white/70 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-2xs backdrop-blur-md transition-all hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white"
-                      title={`Click to view ${c.name} transactions & details`}
-                    >
-                      <span
-                        className="h-2 w-2 shrink-0 rounded-full shadow-2xs"
-                        style={{ backgroundColor: c.color || '#3b82f6' }}
-                      />
-                      <span>{c.name}:</span>
-                      <span className="font-extrabold text-slate-900 dark:text-white">
-                        {formatINR(c.spent)}
-                      </span>
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => {
-                      setHubInitialCategoryId(null);
-                      setIsCategoryHubOpen(true);
-                    }}
-                    className="flex shrink-0 items-center gap-1 rounded-xl border border-slate-200/80 bg-white/50 p-1.5 text-slate-500 hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-700/80 dark:bg-slate-800/40 dark:text-slate-400 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white"
-                    title="Add Category"
-                  >
-                    <Plus size={14} />
-                  </button>
-                </>
-              )}
-            </div>
+              </>
+            )}
           </div>
-        </div>
 
-        {/* Secondary Column: All-Time Spent & Active EMIs / Daily Pace (4 cols) */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-4 lg:grid-cols-1">
-          {/* Lifetime Total Spent Card */}
-          <Link
-            href="/analytics"
-            className="glass-card-interactive group relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-5"
-            title="Click to view detailed all-time analytics"
+          {/* Right: View Details & Manage Link Button */}
+          <button
+            onClick={() => {
+              setHubInitialCategoryId(categories[0]?.id || null);
+              setIsCategoryHubOpen(true);
+            }}
+            className="group inline-flex shrink-0 items-center justify-center gap-1.5 self-start rounded-xl border border-indigo-200/70 bg-indigo-50/70 px-3 py-1.5 text-xs font-bold text-indigo-600 shadow-2xs backdrop-blur-md transition-all hover:border-indigo-300 hover:bg-indigo-100/80 hover:text-indigo-700 sm:self-auto lg:self-center dark:border-indigo-500/30 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:border-indigo-400/50 dark:hover:bg-indigo-900/50 dark:hover:text-indigo-200"
           >
-            <div className="pointer-events-none absolute -top-10 -right-10 h-28 w-28 rounded-full bg-indigo-500/10 blur-2xl dark:bg-indigo-500/20" />
-            <div className="relative flex items-center justify-between text-slate-500 dark:text-slate-400">
-              <span className="text-[10px] font-bold tracking-wider uppercase">All-Time Total</span>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[11px] font-bold text-indigo-600 opacity-0 transition-opacity group-hover:opacity-100 dark:text-indigo-400">
-                  Analytics Hub →
-                </span>
-                <div className="rounded-xl bg-indigo-50 p-1.5 text-indigo-600 shadow-2xs transition-transform group-hover:scale-110 dark:bg-indigo-950/70 dark:text-indigo-400">
-                  <TrendingUp size={15} />
-                </div>
-              </div>
-            </div>
-            <div className="relative mt-2">
-              <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-                {formatINR(stats.allTimeTotalSpent)}
-              </p>
-              <p className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                {stats.allTimeCount} recorded transaction{stats.allTimeCount === 1 ? '' : 's'}{' '}
-                across all months
-              </p>
-            </div>
-          </Link>
-
-          {/* Dynamic Context Card: Active EMIs or Daily Safe Burn Allowance */}
-          {stats.monthEmiTotal > 0 ? (
-            <div className="glass-panel relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-5">
-              <div className="pointer-events-none absolute -top-10 -right-10 h-28 w-28 rounded-full bg-purple-500/10 blur-2xl dark:bg-purple-500/20" />
-              <div className="relative flex items-center justify-between text-slate-500 dark:text-slate-400">
-                <span className="text-[10px] font-bold tracking-wider uppercase">Active EMIs</span>
-                <div className="rounded-xl bg-purple-50 p-1.5 text-purple-600 shadow-2xs dark:bg-purple-950/70 dark:text-purple-400">
-                  <CreditCard size={15} />
-                </div>
-              </div>
-              <div className="relative mt-2">
-                <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-                  {formatINR(stats.monthEmiTotal)}
-                </p>
-                <p className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                  {stats.monthEmiCount} active EMI installment{stats.monthEmiCount === 1 ? '' : 's'}{' '}
-                  in {monthTitle}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="glass-panel relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-5">
-              <div className="pointer-events-none absolute -top-10 -right-10 h-28 w-28 rounded-full bg-emerald-500/10 blur-2xl dark:bg-emerald-500/20" />
-              <div className="relative flex items-center justify-between text-slate-500 dark:text-slate-400">
-                <span className="text-[10px] font-bold tracking-wider uppercase">
-                  Daily Safe Pace
-                </span>
-                <div className="rounded-xl bg-emerald-50 p-1.5 text-emerald-600 shadow-2xs dark:bg-emerald-950/70 dark:text-emerald-400">
-                  <Zap size={15} />
-                </div>
-              </div>
-              <div className="relative mt-2">
-                <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-                  {runwayStats ? formatINR(Math.round(runwayStats.safeDailyAllowance)) : '₹0'}/day
-                </p>
-                <p className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                  {runwayStats && runwayStats.daysRemaining > 0
-                    ? `${runwayStats.daysRemaining} days left in ${monthTitle}`
-                    : `Cycle ended for ${monthTitle}`}
-                </p>
-              </div>
-            </div>
-          )}
+            <span>View Details & Manage</span>
+            <ArrowUpRight
+              size={13}
+              className="shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+            />
+          </button>
         </div>
       </section>
 
