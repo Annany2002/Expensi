@@ -18,6 +18,7 @@ import {
 import { useStore } from '@/context/StoreContext';
 import { useToast } from '@/context/ToastContext';
 import { exportToCSV, exportToJSON } from '@/lib/export';
+import Footer from '@/components/Footer';
 import {
   ArrowLeft,
   TrendingUp,
@@ -1215,6 +1216,9 @@ export default function AnalyticsPage() {
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <Footer />
     </main>
   );
 }

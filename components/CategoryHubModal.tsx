@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useStore, Category, Expense } from '@/context/StoreContext';
 import { useToast } from '@/context/ToastContext';
 import {
@@ -18,6 +18,7 @@ import {
   Loader2,
   ReceiptText,
   PieChart,
+  GripVertical,
 } from 'lucide-react';
 
 interface CategoryHubModalProps {
@@ -73,6 +74,35 @@ const PRESET_COLORS = [
   '#ec4899',
   '#64748b',
 ];
+
+function createDragGhost(title: string, subtitle?: string, isCategory?: boolean) {
+  try {
+    const ghost = document.createElement('div');
+    ghost.style.position = 'fixed';
+    ghost.style.top = '-1000px';
+    ghost.style.left = '-1000px';
+    ghost.style.padding = '6px 12px';
+    ghost.style.borderRadius = '12px';
+    ghost.style.background = isCategory ? '#1e1b4b' : '#4f46e5';
+    ghost.style.color = '#ffffff';
+    ghost.style.fontSize = '11px';
+    ghost.style.fontWeight = '700';
+    ghost.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.4)';
+    ghost.style.pointerEvents = 'none';
+    ghost.style.zIndex = '99999';
+    ghost.style.display = 'flex';
+    ghost.style.alignItems = 'center';
+    ghost.style.gap = '6px';
+    ghost.style.border = isCategory ? '1px solid #4338ca' : '1px solid #6366f1';
+    ghost.innerHTML = `<span style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${title}</span>${
+      subtitle ? `<span style="opacity:0.8;font-size:10px">${subtitle}</span>` : ''
+    }`;
+    document.body.appendChild(ghost);
+    return ghost;
+  } catch {
+    return null;
+  }
+}
 
 export default function CategoryHubModal({
   isOpen,
@@ -140,6 +170,18 @@ export default function CategoryHubModal({
   // Delete EMI prompt state
   const [deletingEmiExpense, setDeletingEmiExpense] = useState<Expense | null>(null);
 
+  // Drag and Drop state
+  const [draggedExpense, setDraggedExpense] = useState<Expense | null>(null);
+  const [draggedCategory, setDraggedCategory] = useState<Category | null>(null);
+  const [dragOverCatId, setDragOverCatId] = useState<string | null>(null);
+  const [optimisticMovingExpenseIds, setOptimisticMovingExpenseIds] = useState<string[]>([]);
+  const [categoryMergeConfirm, setCategoryMergeConfirm] = useState<{
+    source: Category;
+    target: Category;
+  } | null>(null);
+
+  const isDraggingAny = Boolean(draggedExpense || draggedCategory);
+
   // Keep date synced with selectedMonth
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -170,35 +212,35 @@ export default function CategoryHubModal({
     }
   }, [categories, selectedCatId]);
 
-  // Handle ESC key to close sub-modals, edit mode, or main modal
+  // Handle ESC key to close sub-modals, edit mode, or main modal with stable ref
+  const escHandlerRef = useRef<() => void>(() => {});
+  escHandlerRef.current = () => {
+    if (categoryMergeConfirm) {
+      setCategoryMergeConfirm(null);
+    } else if (convertingExpense) {
+      setConvertingExpense(null);
+    } else if (deletingEmiExpense) {
+      setDeletingEmiExpense(null);
+    } else if (editingId) {
+      setEditingId(null);
+    } else if (isCreatingCategory) {
+      setIsCreatingCategory(false);
+    } else {
+      onClose();
+    }
+  };
+
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        if (convertingExpense) {
-          setConvertingExpense(null);
-        } else if (deletingEmiExpense) {
-          setDeletingEmiExpense(null);
-        } else if (editingId) {
-          setEditingId(null);
-        } else if (isCreatingCategory) {
-          setIsCreatingCategory(false);
-        } else {
-          onClose();
-        }
+        escHandlerRef.current();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [
-    isOpen,
-    convertingExpense,
-    deletingEmiExpense,
-    editingId,
-    isCreatingCategory,
-    onClose,
-  ]);
+  }, [isOpen]);
 
   const activeCategory = useMemo(() => {
     if (!selectedCatId) return categories[0] || null;
@@ -224,16 +266,19 @@ export default function CategoryHubModal({
   }, [expenses, activeCategory, selectedMonth]);
 
   const filteredExpenses = useMemo(() => {
-    if (!searchQuery.trim()) return categoryExpenses;
+    const available = categoryExpenses.filter(
+      (exp) => !optimisticMovingExpenseIds.includes(exp.id),
+    );
+    if (!searchQuery.trim()) return available;
     const q = searchQuery.toLowerCase().trim();
-    return categoryExpenses.filter(
+    return available.filter(
       (exp) =>
         exp.description.toLowerCase().includes(q) ||
         String(exp.amount).includes(q) ||
         exp.date.includes(q) ||
         (exp.paymentMethod && exp.paymentMethod.toLowerCase().includes(q)),
     );
-  }, [categoryExpenses, searchQuery]);
+  }, [categoryExpenses, searchQuery, optimisticMovingExpenseIds]);
 
   if (!isOpen) return null;
 
@@ -299,6 +344,31 @@ export default function CategoryHubModal({
       } finally {
         setDeletingCatId(null);
       }
+    }
+  };
+
+  const handleExecuteCategoryMerge = async () => {
+    if (!categoryMergeConfirm) return;
+    const { source, target } = categoryMergeConfirm;
+    const expensesToMove = expenses.filter(
+      (e) => e.categoryId === source.id && e.month === selectedMonth,
+    );
+    if (expensesToMove.length === 0) {
+      toast.info('No Expenses', `No expenses in "${source.name}" for ${monthTitle}`);
+      setCategoryMergeConfirm(null);
+      return;
+    }
+    setCategoryMergeConfirm(null);
+    try {
+      await Promise.all(expensesToMove.map((e) => editExpense(e.id, { categoryId: target.id })));
+      toast.success(
+        'Expenses Reassigned',
+        `Moved ${expensesToMove.length} expense${expensesToMove.length === 1 ? '' : 's'} from "${source.name}" to "${target.name}"`,
+      );
+      setSelectedCatId(target.id);
+    } catch (err) {
+      console.error('Failed to move expenses:', err);
+      toast.error('Move Failed', 'Could not transfer all expenses');
     }
   };
 
@@ -564,66 +634,159 @@ export default function CategoryHubModal({
                   return (
                     <div
                       key={c.id}
-                      onClick={() => setSelectedCatId(c.id)}
-                      className={`group relative flex min-w-35 shrink-0 cursor-pointer items-center justify-between rounded-xl p-2.5 transition-all sm:min-w-40 sm:rounded-2xl sm:p-3 md:w-full ${
-                        isSelected
-                          ? 'border border-indigo-500/50 bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
-                          : 'border border-slate-200/80 bg-white/70 text-slate-700 hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 overflow-hidden sm:gap-2.5">
-                        <span
-                          className="h-2.5 w-2.5 shrink-0 rounded-full shadow-2xs ring-2 ring-white/50 sm:h-3 sm:w-3 dark:ring-black/50"
-                          style={{ backgroundColor: c.color || '#3b82f6' }}
-                        />
-                        <div className="truncate text-left">
-                          <p className="truncate text-xs font-bold">{c.name}</p>
-                          <p
-                            className={`text-[10px] font-medium ${
-                              isSelected ? 'text-indigo-100' : 'text-slate-400'
-                            }`}
-                          >
-                            {catTxns} txn{catTxns === 1 ? '' : 's'}
-                          </p>
-                        </div>
-                      </div>
+                      draggable={true}
+                      onDragStart={(e) => {
+                        setDraggedCategory(c);
+                        e.dataTransfer.setData(
+                          'application/json',
+                          JSON.stringify({
+                            type: 'CATEGORY',
+                            categoryId: c.id,
+                            categoryName: c.name,
+                          }),
+                        );
+                        e.dataTransfer.effectAllowed = 'move';
+                        const ghost = createDragGhost(c.name, 'Category', true);
+                        if (ghost) {
+                          e.dataTransfer.setDragImage(ghost, 15, 15);
+                          setTimeout(() => {
+                            if (document.body.contains(ghost)) document.body.removeChild(ghost);
+                          }, 0);
+                        }
+                      }}
+                      onDragEnd={() => {
+                        setDraggedCategory(null);
+                        setDragOverCatId(null);
+                      }}
+                      onDragEnter={(e) => {
+                        e.preventDefault();
+                        if (draggedExpense && draggedExpense.categoryId !== c.id) {
+                          setDragOverCatId(c.id);
+                        } else if (draggedCategory && draggedCategory.id !== c.id) {
+                          setDragOverCatId(c.id);
+                        }
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                      }}
+                      onDragLeave={(e) => {
+                        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                          if (dragOverCatId === c.id) setDragOverCatId(null);
+                        }
+                      }}
+                      onDrop={async (e) => {
+                        e.preventDefault();
+                        setDragOverCatId(null);
+                        try {
+                          const raw = e.dataTransfer.getData('application/json');
+                          if (!raw) return;
+                          const data = JSON.parse(raw);
 
-                      <div className="flex items-center gap-1.5 text-right sm:gap-2">
-                        <div>
-                          <p className="text-xs font-black">{formatINR(c.spent)}</p>
-                          {catLimit && (
+                          if (data.type === 'EXPENSE') {
+                            if (data.sourceCatId === c.id) return;
+                            setOptimisticMovingExpenseIds((prev) => [...prev, data.expenseId]);
+                            try {
+                              await editExpense(data.expenseId, { categoryId: c.id });
+                              toast.success(
+                                `Moved to ${c.name}`,
+                                `"${data.description}" reassigned to ${c.name}`,
+                              );
+                            } catch (err) {
+                              console.error('Drop error:', err);
+                              toast.error('Move failed', 'Could not reassign expense');
+                            } finally {
+                              setOptimisticMovingExpenseIds((prev) =>
+                                prev.filter((id) => id !== data.expenseId),
+                              );
+                            }
+                          } else if (data.type === 'CATEGORY') {
+                            if (data.categoryId === c.id) return;
+                            const sourceCat = categories.find((cat) => cat.id === data.categoryId);
+                            if (sourceCat) {
+                              setCategoryMergeConfirm({ source: sourceCat, target: c });
+                            }
+                          }
+                        } catch (err) {
+                          console.error('Drop error:', err);
+                        } finally {
+                          setDraggedExpense(null);
+                          setDraggedCategory(null);
+                        }
+                      }}
+                      onClick={() => setSelectedCatId(c.id)}
+                      className={`group relative flex min-w-35 shrink-0 cursor-pointer items-center justify-between rounded-xl p-2.5 transition-all duration-150 select-none sm:min-w-40 sm:rounded-2xl sm:p-3 md:w-full ${
+                        dragOverCatId === c.id
+                          ? 'border-2 border-dashed border-indigo-500 bg-indigo-500/10 shadow-lg ring-4 ring-indigo-500/20 dark:border-indigo-400 dark:bg-indigo-950/80'
+                          : isSelected
+                            ? 'border border-indigo-500/50 bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
+                            : 'border border-slate-200/80 bg-white/70 text-slate-700 hover:border-indigo-300 hover:bg-white hover:text-indigo-600 dark:border-slate-800/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:border-indigo-500/60 dark:hover:bg-slate-700 dark:hover:text-white'
+                      } ${draggedCategory?.id === c.id ? 'scale-95 border-dashed opacity-40' : ''}`}
+                    >
+                      {dragOverCatId === c.id && (
+                        <span className="pointer-events-none absolute -top-2.5 right-3 animate-pulse rounded-full bg-indigo-600 px-2 py-0.5 text-[9px] font-bold text-white shadow-lg dark:bg-indigo-500">
+                          {draggedExpense ? `Drop to move here` : `Drop to merge`}
+                        </span>
+                      )}
+                      <div
+                        className={`flex w-full items-center justify-between ${
+                          isDraggingAny ? 'pointer-events-none' : ''
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 overflow-hidden sm:gap-2.5">
+                          <span
+                            className="h-2.5 w-2.5 shrink-0 rounded-full shadow-2xs ring-2 ring-white/50 sm:h-3 sm:w-3 dark:ring-black/50"
+                            style={{ backgroundColor: c.color || '#3b82f6' }}
+                          />
+                          <div className="truncate text-left">
+                            <p className="truncate text-xs font-bold">{c.name}</p>
                             <p
-                              className={`text-[9px] font-semibold ${
-                                isSelected
-                                  ? catOver
-                                    ? 'text-rose-200'
-                                    : 'text-indigo-100'
-                                  : catOver
-                                    ? 'text-rose-500'
-                                    : 'text-slate-400'
+                              className={`text-[10px] font-medium ${
+                                isSelected ? 'text-indigo-100' : 'text-slate-400'
                               }`}
                             >
-                              {Math.round(catPct)}%
+                              {catTxns} txn{catTxns === 1 ? '' : 's'}
                             </p>
-                          )}
+                          </div>
                         </div>
 
-                        <button
-                          onClick={(e) => handleDeleteCategory(e, c)}
-                          disabled={deletingCatId === c.id}
-                          className={`rounded-lg p-1 transition-opacity ${
-                            isSelected
-                              ? 'text-indigo-200 hover:bg-indigo-700 hover:text-white'
-                              : 'text-slate-400 opacity-100 hover:bg-rose-50 hover:text-rose-600 md:opacity-0 md:group-hover:opacity-100 dark:hover:bg-rose-950/50 dark:hover:text-rose-400'
-                          }`}
-                          title="Delete Category"
-                        >
-                          {deletingCatId === c.id ? (
-                            <Loader2 size={12} className="animate-spin" />
-                          ) : (
-                            <Trash2 size={12} />
-                          )}
-                        </button>
+                        <div className="flex items-center gap-1.5 text-right sm:gap-2">
+                          <div>
+                            <p className="text-xs font-black">{formatINR(c.spent)}</p>
+                            {catLimit && (
+                              <p
+                                className={`text-[9px] font-semibold ${
+                                  isSelected
+                                    ? catOver
+                                      ? 'text-rose-200'
+                                      : 'text-indigo-100'
+                                    : catOver
+                                      ? 'text-rose-500'
+                                      : 'text-slate-400'
+                                }`}
+                              >
+                                {Math.round(catPct)}%
+                              </p>
+                            )}
+                          </div>
+
+                          <button
+                            onClick={(e) => handleDeleteCategory(e, c)}
+                            disabled={deletingCatId === c.id}
+                            className={`rounded-lg p-1 transition-opacity ${
+                              isSelected
+                                ? 'text-indigo-200 hover:bg-indigo-700 hover:text-white'
+                                : 'text-slate-400 opacity-100 hover:bg-rose-50 hover:text-rose-600 md:opacity-0 md:group-hover:opacity-100 dark:hover:bg-rose-950/50 dark:hover:text-rose-400'
+                            }`}
+                            title="Delete Category"
+                          >
+                            {deletingCatId === c.id ? (
+                              <Loader2 size={12} className="animate-spin" />
+                            ) : (
+                              <Trash2 size={12} />
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
@@ -1014,9 +1177,48 @@ export default function CategoryHubModal({
                         return (
                           <div
                             key={expense.id}
-                            className="glass-card-interactive group flex items-center justify-between rounded-2xl p-3.5"
+                            draggable={!editingId}
+                            onDragStart={(e) => {
+                              setDraggedExpense(expense);
+                              e.dataTransfer.setData(
+                                'application/json',
+                                JSON.stringify({
+                                  type: 'EXPENSE',
+                                  expenseId: expense.id,
+                                  description: expense.description,
+                                  sourceCatId: expense.categoryId,
+                                }),
+                              );
+                              e.dataTransfer.effectAllowed = 'move';
+                              const ghost = createDragGhost(
+                                expense.description,
+                                formatINR(expense.amount),
+                              );
+                              if (ghost) {
+                                e.dataTransfer.setDragImage(ghost, 15, 15);
+                                setTimeout(() => {
+                                  if (document.body.contains(ghost))
+                                    document.body.removeChild(ghost);
+                                }, 0);
+                              }
+                            }}
+                            onDragEnd={() => {
+                              setDraggedExpense(null);
+                              setDragOverCatId(null);
+                            }}
+                            className={`glass-card-interactive group flex items-center justify-between rounded-2xl p-3.5 transition-all select-none ${
+                              draggedExpense?.id === expense.id
+                                ? 'scale-[0.99] border-2 border-dashed border-indigo-400 opacity-30 dark:border-indigo-500'
+                                : ''
+                            }`}
                           >
-                            <div className="flex items-center gap-3 overflow-hidden">
+                            <div className="flex items-center gap-2.5 overflow-hidden">
+                              <div
+                                className="hidden shrink-0 cursor-grab text-slate-300 transition-colors hover:text-slate-600 active:cursor-grabbing sm:block dark:text-slate-600 dark:hover:text-slate-300"
+                                title="Drag to reassign category"
+                              >
+                                <GripVertical size={14} />
+                              </div>
                               <div
                                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl font-bold ${
                                   isEmi
@@ -1105,7 +1307,7 @@ export default function CategoryHubModal({
         {/* Modal Footer */}
         <div className="flex shrink-0 items-center justify-between border-t border-slate-200/80 bg-slate-50/50 px-4 py-3 text-xs font-medium text-slate-500 sm:px-6 sm:py-3.5 dark:border-slate-800/80 dark:bg-slate-900/40 dark:text-slate-400">
           <span className="truncate pr-2 text-[11px] sm:text-xs">
-            Master-Detail View • Select category to manage transactions.
+            Master-Detail View • Drag and drop transactions or categories to reassign.
           </span>
           <button
             onClick={onClose}
@@ -1213,6 +1415,51 @@ export default function CategoryHubModal({
                 className="btn-secondary py-1.5 text-xs font-bold"
               >
                 Keep EMI
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Category Merge / Transfer Confirmation Sub-Modal */}
+      {categoryMergeConfirm && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-xs"
+            onClick={() => setCategoryMergeConfirm(null)}
+          />
+          <div className="glass-panel animate-in zoom-in-95 relative w-full max-w-sm rounded-3xl p-6 shadow-2xl">
+            <div className="mb-2 flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
+              <Layers size={20} />
+              <h4 className="text-base font-black text-slate-900 dark:text-white">
+                Transfer Expenses?
+              </h4>
+            </div>
+            <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+              Move all expenses for{' '}
+              <span className="font-semibold text-slate-700 dark:text-slate-200">{monthTitle}</span>{' '}
+              from{' '}
+              <span className="font-bold text-slate-800 dark:text-white">
+                {categoryMergeConfirm.source.name}
+              </span>{' '}
+              into{' '}
+              <span className="font-bold text-indigo-600 dark:text-indigo-400">
+                {categoryMergeConfirm.target.name}
+              </span>
+              ?
+            </p>
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={handleExecuteCategoryMerge}
+                className="flex-1 rounded-xl bg-indigo-600 py-2 text-xs font-bold text-white shadow-md shadow-indigo-600/25 hover:bg-indigo-500"
+              >
+                Transfer All
+              </button>
+              <button
+                onClick={() => setCategoryMergeConfirm(null)}
+                className="btn-secondary px-3 py-2 text-xs font-bold"
+              >
+                Cancel
               </button>
             </div>
           </div>
