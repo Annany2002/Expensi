@@ -305,7 +305,8 @@ export default function Home() {
       daysRemaining > 0 ? Math.max(0, remainingBudget / daysRemaining) : remainingBudget;
 
     const isPaceOver = projectedSpend > targetBudget;
-    const paceDiff = Math.abs(projectedSpend - targetBudget);
+    const projectedOverspend = Math.max(0, projectedSpend - targetBudget);
+    const dailyPaceDiff = Math.max(0, dailyAverage - safeDailyAllowance);
 
     return {
       daysInMonth,
@@ -316,7 +317,8 @@ export default function Home() {
       remainingBudget,
       safeDailyAllowance,
       isPaceOver,
-      paceDiff,
+      projectedOverspend,
+      dailyPaceDiff,
       isCurrentMonth,
     };
   }, [effectiveBudget, monthlyBudget, selectedMonth, totalSpentThisMonth]);
@@ -888,7 +890,7 @@ export default function Home() {
                 runwayStats.isPaceOver ? (
                   <span className="flex items-center gap-1 rounded-full border border-amber-200/80 bg-amber-50/90 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 shadow-2xs dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-300">
                     <AlertTriangle size={11} />
-                    Pace: +{formatINR(Math.round(runwayStats.paceDiff))}
+                    Proj. Overspend: +{formatINR(Math.round(runwayStats.projectedOverspend))}
                   </span>
                 ) : (
                   <span className="flex items-center gap-1 rounded-full border border-emerald-200/80 bg-emerald-50/90 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 shadow-2xs dark:border-emerald-900/50 dark:bg-emerald-950/50 dark:text-emerald-300">
@@ -953,7 +955,7 @@ export default function Home() {
                 >
                   {runwayStats
                     ? runwayStats.isPaceOver
-                      ? `+${formatINR(Math.round(runwayStats.paceDiff))}/d over pace`
+                      ? `+${formatINR(Math.round(runwayStats.dailyPaceDiff))}/day over safe pace`
                       : 'Within safe pace'
                     : '₹0/day'}
                 </span>
@@ -1058,7 +1060,7 @@ export default function Home() {
                   </span>
                   <span className="font-bold text-indigo-600 dark:text-indigo-400">
                     {stats.allTimeTotalSpent > 0
-                      ? `${Math.round((totalSpentThisMonth / stats.allTimeTotalSpent) * 100)}% this mo`
+                      ? `This month: ${Math.round((totalSpentThisMonth / stats.allTimeTotalSpent) * 100)}% of total`
                       : '0%'}
                   </span>
                 </div>
