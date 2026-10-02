@@ -5,21 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useStore } from '@/context/StoreContext';
-import {
-  Lock,
-  Mail,
-  User as UserIcon,
-  Eye,
-  EyeOff,
-  Sun,
-  Moon,
-  ArrowRight,
-  Sparkles,
-  Copy,
-  Check,
-  X,
-  Sliders,
-} from 'lucide-react';
+import { Eye, EyeOff, Sun, Moon, ArrowRight, Sparkles, X, Sliders } from 'lucide-react';
 
 function generateSecurePassword(length = 14): string {
   const finalLen = Math.max(8, length);
@@ -67,7 +53,6 @@ export default function AuthPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -89,17 +74,6 @@ export default function AuthPage() {
     setShowPassword(false); // keep hidden after generation
     setError(null);
     setShowGenPanel(false);
-  };
-
-  const handleCopyPassword = async () => {
-    if (!password) return;
-    try {
-      await navigator.clipboard.writeText(password);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -144,9 +118,9 @@ export default function AuthPage() {
           title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
         >
           {theme === 'dark' ? (
-            <Sun size={16} className="sm:size-[18px]" />
+            <Sun size={16} className="sm:size-4.5" />
           ) : (
-            <Moon size={16} className="sm:size-[18px]" />
+            <Moon size={16} className="sm:size-4.5" />
           )}
         </button>
       </div>
@@ -225,19 +199,13 @@ export default function AuthPage() {
               <label className="mb-1.5 block text-xs font-semibold tracking-wider text-neutral-500 uppercase">
                 Your Name
               </label>
-              <div className="relative">
-                <UserIcon
-                  size={16}
-                  className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-neutral-400"
-                />
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Your name"
-                  className="glass-input w-full pl-11! text-sm"
-                />
-              </div>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name"
+                className="glass-input w-full text-sm"
+              />
             </div>
           )}
 
@@ -245,21 +213,15 @@ export default function AuthPage() {
             <label className="mb-1.5 block text-xs font-semibold tracking-wider text-neutral-500 uppercase">
               Email Address
             </label>
-            <div className="relative">
-              <Mail
-                size={16}
-                className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-neutral-400"
-              />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.com"
-                className="glass-input w-full pl-11! text-sm"
-                required
-                autoFocus={isLogin}
-              />
-            </div>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="name@example.com"
+              className="glass-input w-full text-sm"
+              required
+              autoFocus={isLogin}
+            />
           </div>
 
           <div>
@@ -268,39 +230,23 @@ export default function AuthPage() {
             </label>
 
             <div className="relative">
-              <Lock
-                size={16}
-                className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-neutral-400"
-              />
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className={`glass-input w-full pl-11! text-sm ${password ? 'pr-20!' : 'pr-11!'}`}
+                className="glass-input w-full pr-11 text-sm"
                 required
                 minLength={6}
               />
-              <div className="absolute top-1/2 right-2.5 flex -translate-y-1/2 items-center gap-1">
-                {password && (
-                  <button
-                    type="button"
-                    onClick={handleCopyPassword}
-                    className="rounded-lg p-1.5 text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-white"
-                    title={copied ? 'Copied!' : 'Copy password'}
-                  >
-                    {copied ? <Check size={15} className="text-emerald-500" /> : <Copy size={15} />}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="rounded-lg p-1.5 text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-white"
-                  title={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute top-1/2 right-2.5 z-10 -translate-y-1/2 rounded-lg p-1.5 text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-white"
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
             </div>
 
             {/* In Create Account mode: Dedicated generator action bar beneath input */}
@@ -354,7 +300,7 @@ export default function AuthPage() {
                           max="32"
                           value={genLength}
                           onChange={(e) => setGenLength(parseInt(e.target.value, 10))}
-                          className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-200 accent-neutral-900 dark:bg-neutral-700 dark:accent-white"
+                          className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-200 accent-neutral-900 focus:outline-none dark:bg-neutral-700 dark:accent-white"
                         />
                         <input
                           type="number"

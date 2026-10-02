@@ -411,9 +411,6 @@ export default function TransactionHistoryModal({
                       {isEmiMode ? 'Total Amount' : 'Amount'}
                     </label>
                     <div className="relative">
-                      <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs font-semibold text-neutral-400">
-                        ₹
-                      </span>
                       <input
                         type="number"
                         value={amount}
@@ -422,6 +419,9 @@ export default function TransactionHistoryModal({
                         className="glass-input w-full py-1.5 pr-2.5 pl-6! text-xs font-bold"
                         required
                       />
+                      <span className="pointer-events-none absolute top-1/2 left-2.5 z-10 -translate-y-1/2 text-xs font-semibold text-neutral-400 dark:text-neutral-500">
+                        ₹
+                      </span>
                     </div>
                   </div>
 
@@ -565,16 +565,16 @@ export default function TransactionHistoryModal({
               {/* Search Bar & Close Button grouped inline */}
               <div className="flex items-center gap-2">
                 <div className="relative flex-1 sm:w-56">
-                  <Search
-                    size={13}
-                    className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-slate-400"
-                  />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search transactions..."
                     className="glass-input w-full py-1.5 pr-2.5 pl-7.5! text-xs font-medium"
+                  />
+                  <Search
+                    size={13}
+                    className="pointer-events-none absolute top-1/2 left-2.5 z-10 -translate-y-1/2 text-slate-400 dark:text-slate-500"
                   />
                 </div>
 

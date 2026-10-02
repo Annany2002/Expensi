@@ -113,9 +113,6 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
               <span className="font-normal text-slate-400 normal-case">(Optional)</span>
             </label>
             <div className="relative">
-              <span className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-xs font-bold text-slate-400">
-                ₹
-              </span>
               <input
                 type="number"
                 value={limit}
@@ -124,6 +121,9 @@ export default function AddCategoryModal({ isOpen, onClose }: AddCategoryModalPr
                 placeholder="0 (No limit)"
                 min="0"
               />
+              <span className="pointer-events-none absolute top-1/2 left-3.5 z-10 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-slate-500">
+                ₹
+              </span>
             </div>
           </div>
 

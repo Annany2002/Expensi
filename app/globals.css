@@ -176,7 +176,27 @@ body {
 
   /* Translucent Inputs - base 16px on mobile prevents iOS Safari zoom */
   .glass-input {
-    @apply rounded-xl border border-slate-300/80 bg-white/80 py-2.5 pr-4 pl-4 text-base text-slate-900 placeholder-slate-400 backdrop-blur-md transition-all focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:outline-none md:text-xs dark:border-slate-700/80 dark:bg-slate-900/70 dark:text-white dark:placeholder-slate-500 dark:focus:border-indigo-400 dark:focus:bg-slate-900 dark:focus:ring-indigo-400/25;
+    @apply rounded-xl border border-slate-300/80 bg-white/80 py-2.5 pr-4 pl-4 text-base text-slate-900 placeholder-slate-400 backdrop-blur-md transition-all md:text-xs dark:border-slate-700/80 dark:bg-slate-900/70 dark:text-white dark:placeholder-slate-500;
+    outline: none !important;
+    outline-offset: 0 !important;
+  }
+
+  .glass-input:focus,
+  .glass-input:focus-visible {
+    border-color: #6366f1 !important;
+    background-color: #ffffff !important;
+    outline: none !important;
+    outline-offset: 0 !important;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+  }
+
+  .dark .glass-input:focus,
+  .dark .glass-input:focus-visible {
+    border-color: #818cf8 !important;
+    background-color: #0f172a !important;
+    outline: none !important;
+    outline-offset: 0 !important;
+    box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.25) !important;
   }
 
   /* High-Contrast Luxury Buttons */
@@ -193,8 +213,26 @@ body {
   }
 }
 
-/* Touch & Mobile Optimizations */
+/* Touch & Mobile Optimizations & Form Control Resets */
 @layer base {
+  /* Universal Input & Control Reset: Eradicate browser default outline and offset gap */
+  input,
+  textarea,
+  select {
+    outline: none !important;
+    outline-offset: 0 !important;
+  }
+
+  input:focus,
+  input:focus-visible,
+  textarea:focus,
+  textarea:focus-visible,
+  select:focus,
+  select:focus-visible {
+    outline: none !important;
+    outline-offset: 0 !important;
+  }
+
   html {
     -webkit-tap-highlight-color: transparent;
     -webkit-text-size-adjust: 100%;
