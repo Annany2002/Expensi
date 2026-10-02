@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
       description: exp.description,
       paymentMethod: exp.paymentMethod || 'UPI',
       isEmi: exp.isEmi || false,
+      isRecurring: exp.isRecurring || false,
       emiDetails: exp.emiDetails || null,
     }));
 
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     await connectToDatabase();
     const body = await req.json();
-    const { categoryId, amount, date, description, paymentMethod } = body;
+    const { categoryId, amount, date, description, paymentMethod, isRecurring } = body;
 
     if (!categoryId || amount === undefined || !date) {
       return NextResponse.json(
@@ -70,6 +71,7 @@ export async function POST(req: NextRequest) {
       description: description || 'Expense',
       paymentMethod: paymentMethod || 'UPI',
       isEmi: false,
+      isRecurring: Boolean(isRecurring),
     });
 
     return NextResponse.json(
@@ -83,6 +85,7 @@ export async function POST(req: NextRequest) {
           description: newExpense.description,
           paymentMethod: newExpense.paymentMethod || 'UPI',
           isEmi: false,
+          isRecurring: Boolean(newExpense.isRecurring),
           emiDetails: null,
         },
       },

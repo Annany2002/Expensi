@@ -19,6 +19,7 @@ import {
   ReceiptText,
   PieChart,
   GripVertical,
+  Repeat,
 } from 'lucide-react';
 
 interface CategoryHubModalProps {
@@ -155,6 +156,7 @@ export default function CategoryHubModal({
   // EMI form toggle & tenure
   const [isEmiMode, setIsEmiMode] = useState(false);
   const [tenure, setTenure] = useState('6');
+  const [isRecurring, setIsRecurring] = useState(false);
 
   // Inline Edit state
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -162,6 +164,7 @@ export default function CategoryHubModal({
   const [editDescription, setEditDescription] = useState('');
   const [editDate, setEditDate] = useState('');
   const [editPaymentMethod, setEditPaymentMethod] = useState('UPI');
+  const [editIsRecurring, setEditIsRecurring] = useState(false);
 
   // Convert to EMI modal state
   const [convertingExpense, setConvertingExpense] = useState<Expense | null>(null);
@@ -405,6 +408,7 @@ export default function CategoryHubModal({
           date: expenseDate,
           description: description || 'Expense',
           paymentMethod,
+          isRecurring,
         });
         toast.success(
           'Expense Added',
@@ -416,6 +420,7 @@ export default function CategoryHubModal({
       setDescription('');
       setPaymentMethod('UPI');
       setIsEmiMode(false);
+      setIsRecurring(false);
     } catch {
       toast.error('Failed to add transaction');
     } finally {
@@ -429,6 +434,7 @@ export default function CategoryHubModal({
     setEditDescription(exp.description);
     setEditDate(exp.date);
     setEditPaymentMethod(exp.paymentMethod || 'UPI');
+    setEditIsRecurring(Boolean(exp.isRecurring));
   };
 
   const saveEdit = async () => {
@@ -441,6 +447,7 @@ export default function CategoryHubModal({
         description: editDescription || 'Expense',
         date: editDate,
         paymentMethod: editPaymentMethod,
+        isRecurring: editIsRecurring,
       });
 
       toast.success('Expense Updated');
@@ -570,9 +577,6 @@ export default function CategoryHubModal({
                   required
                 />
                 <div className="relative">
-                  <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs font-semibold text-slate-400">
-                    ₹
-                  </span>
                   <input
                     type="number"
                     value={newCatLimit}
@@ -580,6 +584,9 @@ export default function CategoryHubModal({
                     placeholder="Monthly limit (optional)"
                     className="glass-input w-full py-1.5 pl-6! text-xs font-medium"
                   />
+                  <span className="pointer-events-none absolute top-1/2 left-2.5 z-10 -translate-y-1/2 text-xs font-semibold text-slate-400 dark:text-slate-500">
+                    ₹
+                  </span>
                 </div>
                 {/* Color presets */}
                 <div className="flex flex-wrap gap-1.5 pt-1">
@@ -937,9 +944,6 @@ export default function CategoryHubModal({
                         {isEmiMode ? 'Total Amount' : 'Amount'}
                       </label>
                       <div className="relative">
-                        <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-xs font-semibold text-slate-400">
-                          ₹
-                        </span>
                         <input
                           type="number"
                           value={amount}
@@ -948,6 +952,9 @@ export default function CategoryHubModal({
                           className="glass-input w-full py-1.5 pr-2.5 pl-6! text-xs font-bold"
                           required
                         />
+                        <span className="pointer-events-none absolute top-1/2 left-2.5 z-10 -translate-y-1/2 text-xs font-semibold text-slate-400 dark:text-slate-500">
+                          ₹
+                        </span>
                       </div>
                     </div>
 
@@ -1003,6 +1010,20 @@ export default function CategoryHubModal({
                             );
                           })}
                         </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setIsRecurring(!isRecurring)}
+                          className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold transition-all ${
+                            isRecurring
+                              ? 'bg-indigo-600 text-white shadow-2xs'
+                              : 'border border-slate-200/80 bg-white/70 text-slate-600 hover:bg-white dark:border-slate-700/80 dark:bg-slate-800/60 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white'
+                          }`}
+                          title="Tag as monthly recurring bill or subscription"
+                        >
+                          <Repeat size={11} />
+                          <span>Recurring</span>
+                        </button>
                       </div>
 
                       <button
@@ -1074,16 +1095,16 @@ export default function CategoryHubModal({
 
                     {/* Filter / Search within category */}
                     <div className="relative">
-                      <Search
-                        size={13}
-                        className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-slate-400"
-                      />
                       <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search entries..."
                         className="glass-input py-1 pr-3 pl-7! text-xs font-medium"
+                      />
+                      <Search
+                        size={13}
+                        className="pointer-events-none absolute top-1/2 left-2.5 z-10 -translate-y-1/2 text-slate-400 dark:text-slate-500"
                       />
                     </div>
                   </div>
@@ -1148,6 +1169,18 @@ export default function CategoryHubModal({
                                       {m}
                                     </button>
                                   ))}
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditIsRecurring(!editIsRecurring)}
+                                    className={`flex items-center gap-1 rounded-lg px-2 py-0.5 text-[10px] font-bold ${
+                                      editIsRecurring
+                                        ? 'bg-indigo-600 text-white'
+                                        : 'border border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                                    }`}
+                                  >
+                                    <Repeat size={10} />
+                                    <span>Recurring</span>
+                                  </button>
                                 </div>
                                 <div className="flex gap-1.5">
                                   <button
@@ -1237,6 +1270,12 @@ export default function CategoryHubModal({
                                   {isEmi && (
                                     <span className="rounded-md border border-purple-200 bg-purple-50 px-1.5 py-0.5 text-[9px] font-extrabold text-purple-700 dark:border-purple-800 dark:bg-purple-950/60 dark:text-purple-300">
                                       EMI
+                                    </span>
+                                  )}
+                                  {expense.isRecurring && (
+                                    <span className="inline-flex items-center gap-1 rounded-md border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 text-[9px] font-extrabold text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300">
+                                      <Repeat size={9} />
+                                      Bill
                                     </span>
                                   )}
                                   <span
