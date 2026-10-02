@@ -13,6 +13,7 @@ import GlobalSearchModal from '@/components/GlobalSearchModal';
 import Footer from '@/components/Footer';
 import LandingPage from '@/components/LandingPage';
 import { exportToCSV, exportToJSON } from '@/lib/export';
+import RolloverBreakdownModal from '@/components/RolloverBreakdownModal';
 import {
   Plus,
   Settings,
@@ -35,6 +36,7 @@ import {
   BarChart3,
   ChevronDown,
   Loader2,
+  Info,
 } from 'lucide-react';
 
 function Skeleton({ className }: { className?: string }) {
@@ -229,6 +231,7 @@ export default function Home() {
   const [hubInitialCategoryId, setHubInitialCategoryId] = useState<string | null>(null);
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isRolloverModalOpen, setIsRolloverModalOpen] = useState(false);
   const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const [isEditingBudget, setIsEditingBudget] = useState(false);
@@ -743,10 +746,21 @@ export default function Home() {
                 {previousMonthSurplus && previousMonthSurplus.surplus > 0 ? (
                   <>
                     <Zap size={12} className="shrink-0 text-indigo-500 dark:text-indigo-400" />
-                    <span className="font-semibold text-slate-700 dark:text-slate-300">
-                      +{formatINR(previousMonthSurplus.surplus)} from{' '}
-                      {previousMonthSurplus.monthName}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsRolloverModalOpen(true)}
+                      className="group/roll inline-flex items-center gap-1 font-semibold text-slate-700 underline decoration-slate-300 underline-offset-2 transition-colors hover:text-indigo-600 dark:text-slate-300 dark:decoration-slate-700 dark:hover:text-indigo-400"
+                      title="Click to view detailed rollover calculation breakdown"
+                    >
+                      <span>
+                        +{formatINR(previousMonthSurplus.surplus)} from{' '}
+                        {previousMonthSurplus.monthName}
+                      </span>
+                      <Info
+                        size={11}
+                        className="opacity-60 transition-opacity group-hover/roll:opacity-100"
+                      />
+                    </button>
                     <span className="text-slate-300 dark:text-slate-600">•</span>
                     <button
                       type="button"
@@ -1194,6 +1208,17 @@ export default function Home() {
         isOpen={isSearchModalOpen}
         onClose={() => setIsSearchModalOpen(false)}
         onSelectExpense={handleSelectSearchedExpense}
+      />
+      <RolloverBreakdownModal
+        isOpen={isRolloverModalOpen}
+        onClose={() => setIsRolloverModalOpen(false)}
+        currentMonthName={monthTitle}
+        baseBudget={monthlyBudget}
+        effectiveBudget={effectiveBudget}
+        previousMonthSurplus={previousMonthSurplus}
+        enableRollover={enableRollover}
+        onToggleRollover={handleToggleRolloverWithToast}
+        formatINR={formatINR}
       />
     </main>
   );

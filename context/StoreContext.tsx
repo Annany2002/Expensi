@@ -48,6 +48,8 @@ export interface PreviousMonthSurplus {
   month: string;
   monthName: string;
   budget: number | null;
+  baseBudget?: number | null;
+  rolloverIn?: number;
   spent: number;
   surplus: number;
 }
@@ -721,36 +723,116 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     return `${prevY}-${prevM}`;
   };
 
+  const getNextMonthString = (m: string) => {
+    const [yStr, mStr] = m.split('-');
+    const y = parseInt(yStr, 10);
+    const mon = parseInt(mStr, 10);
+    const nextDate = new Date(y, mon, 1);
+    const nextY = nextDate.getFullYear();
+    const nextM = String(nextDate.getMonth() + 1).padStart(2, '0');
+    return `${nextY}-${nextM}`;
+  };
+
   const previousMonthSurplus: PreviousMonthSurplus | null = React.useMemo(() => {
     const prevMonthStr = getPreviousMonthString(selectedMonth);
     const [py, pm] = prevMonthStr.split('-').map(Number);
     const pDate = new Date(py, pm - 1, 1);
     const monthName = pDate.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
 
-    const prevBudget = allBudgets[prevMonthStr] ?? null;
-    const prevExpensesTotal = allExpenses
-      .filter((e) => e.month === prevMonthStr)
-      .reduce((sum, e) => sum + e.amount, 0);
+    // Aggregate expenses by month for O(1) lookups
+    const expensesByMonth: Record<string, number> = {};
+    for (const exp of allExpenses) {
+      if (exp.month) {
+        expensesByMonth[exp.month] = (expensesByMonth[exp.month] || 0) + exp.amount;
+      }
+    }
 
-    if (prevBudget === null || prevBudget <= 0) {
+    // Collect all candidate months to determine chronological start
+    const candidateMonths = new Set<string>();
+    Object.keys(allBudgets).forEach((m) => candidateMonths.add(m));
+    Object.keys(expensesByMonth).forEach((m) => candidateMonths.add(m));
+    candidateMonths.add(prevMonthStr);
+
+    const validMonths = Array.from(candidateMonths)
+      .filter((m) => /^\d{4}-\d{2}$/.test(m))
+      .sort();
+
+    if (validMonths.length === 0) {
+      return null;
+    }
+
+    const earliestMonth = validMonths[0];
+
+    // Build contiguous list of months from earliestMonth to prevMonthStr
+    const timelineMonths: string[] = [];
+    let curr = earliestMonth;
+    while (curr <= prevMonthStr) {
+      timelineMonths.push(curr);
+      curr = getNextMonthString(curr);
+    }
+
+    // Run compounding chronological calculation across all months up to previous month
+    const timeline: Record<
+      string,
+      {
+        baseBudget: number | null;
+        rolloverIn: number;
+        effectiveBudget: number | null;
+        spent: number;
+        surplus: number;
+      }
+    > = {};
+
+    for (const m of timelineMonths) {
+      const pM = getPreviousMonthString(m);
+      const prevEntry = timeline[pM];
+      const rolloverIn =
+        enableRollover && prevEntry && prevEntry.surplus > 0 ? prevEntry.surplus : 0;
+      const baseBudget = allBudgets[m] ?? null;
+
+      let effectiveBudget: number | null = null;
+      if (baseBudget !== null || rolloverIn > 0) {
+        effectiveBudget = (baseBudget ?? 0) + rolloverIn;
+      }
+
+      const spent = expensesByMonth[m] || 0;
+      let surplus = 0;
+      if (effectiveBudget !== null && effectiveBudget > 0) {
+        surplus = Math.max(0, effectiveBudget - spent);
+      }
+
+      timeline[m] = {
+        baseBudget,
+        rolloverIn,
+        effectiveBudget,
+        spent,
+        surplus,
+      };
+    }
+
+    const prevResult = timeline[prevMonthStr];
+    if (!prevResult) {
       return {
         month: prevMonthStr,
         monthName,
+        baseBudget: null,
+        rolloverIn: 0,
         budget: null,
-        spent: prevExpensesTotal,
+        spent: expensesByMonth[prevMonthStr] || 0,
         surplus: 0,
       };
     }
 
-    const surplus = Math.max(0, prevBudget - prevExpensesTotal);
     return {
       month: prevMonthStr,
       monthName,
-      budget: prevBudget,
-      spent: prevExpensesTotal,
-      surplus,
+      baseBudget: prevResult.baseBudget,
+      rolloverIn: prevResult.rolloverIn,
+      budget: prevResult.effectiveBudget,
+      spent: prevResult.spent,
+      surplus: prevResult.surplus,
     };
-  }, [selectedMonth, allBudgets, allExpenses]);
+  }, [selectedMonth, allBudgets, allExpenses, enableRollover]);
 
   const rolloverSurplus = enableRollover && previousMonthSurplus ? previousMonthSurplus.surplus : 0;
 
