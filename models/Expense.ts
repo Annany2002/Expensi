@@ -17,6 +17,7 @@ export interface IExpense extends Document {
   description: string;
   paymentMethod?: string;
   isEmi: boolean;
+  isRecurring?: boolean;
   emiDetails?: IEmiDetails;
   createdAt: Date;
   updatedAt: Date;
@@ -73,6 +74,11 @@ const ExpenseSchema = new Schema<IExpense>(
       trim: true,
     },
     isEmi: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    isRecurring: {
       type: Boolean,
       default: false,
       index: true,

@@ -13,7 +13,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     await connectToDatabase();
     const { id } = await params;
     const body = await req.json();
-    const { amount, description, date, categoryId, paymentMethod } = body;
+    const { amount, description, date, categoryId, paymentMethod, isRecurring } = body;
 
     const existing = await Expense.findOne({ _id: id, userId: auth.userId });
     if (!existing) {
@@ -25,6 +25,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (description !== undefined) updates.description = description.trim();
     if (categoryId !== undefined) updates.categoryId = categoryId;
     if (paymentMethod !== undefined) updates.paymentMethod = paymentMethod;
+    if (isRecurring !== undefined) updates.isRecurring = Boolean(isRecurring);
     if (date !== undefined) {
       updates.date = date;
       updates.month = date.substring(0, 7);
@@ -44,6 +45,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         description: updated!.description,
         paymentMethod: updated!.paymentMethod || 'UPI',
         isEmi: updated!.isEmi,
+        isRecurring: Boolean(updated!.isRecurring),
         emiDetails: updated!.emiDetails || null,
       },
     });

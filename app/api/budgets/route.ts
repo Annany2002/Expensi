@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import Budget from '@/models/Budget';
+import User from '@/models/User';
 import { getAuthUser } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
@@ -13,17 +14,31 @@ export async function GET(req: NextRequest) {
     await connectToDatabase();
     const month = req.nextUrl.searchParams.get('month'); // e.g. "2026-08"
 
+    const userDoc = await User.findById(auth.userId).select('defaultSalary').lean();
+    const defaultSalary = userDoc?.defaultSalary ?? null;
+
     if (!month) {
       const allBudgets = await Budget.find({ userId: auth.userId }).lean();
       return NextResponse.json({
-        budgets: allBudgets.map((b) => ({ month: b.month, amount: b.amount })),
+        defaultSalary,
+        budgets: allBudgets.map((b) => ({
+          month: b.month,
+          amount: b.amount,
+          salary: b.salary ?? null,
+        })),
       });
     }
 
     const budgetDoc = await Budget.findOne({ userId: auth.userId, month }).lean();
+    const specificSalary = budgetDoc?.salary ?? null;
+    const effectiveSalary = specificSalary !== null ? specificSalary : defaultSalary;
+
     return NextResponse.json({
       month,
       amount: budgetDoc ? budgetDoc.amount : null,
+      salary: specificSalary,
+      defaultSalary,
+      effectiveSalary,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to fetch budget';
@@ -41,23 +56,52 @@ export async function PUT(req: NextRequest) {
 
     await connectToDatabase();
     const body = await req.json();
-    const { month, amount } = body;
+    const { month, amount, salary, defaultSalary } = body;
 
     if (!month) {
       return NextResponse.json({ error: 'Month (YYYY-MM) is required' }, { status: 400 });
     }
 
-    const parsedAmount = amount === null || amount === '' ? null : Math.max(0, Number(amount));
+    // Handle defaultSalary updates if provided
+    let updatedDefaultSalary: number | null = null;
+    if (defaultSalary !== undefined) {
+      const parsedDef =
+        defaultSalary === null || defaultSalary === '' ? null : Math.max(0, Number(defaultSalary));
+      const updatedUser = await User.findByIdAndUpdate(
+        auth.userId,
+        { defaultSalary: parsedDef },
+        { new: true },
+      ).lean();
+      updatedDefaultSalary = updatedUser?.defaultSalary ?? null;
+    } else {
+      const userDoc = await User.findById(auth.userId).select('defaultSalary').lean();
+      updatedDefaultSalary = userDoc?.defaultSalary ?? null;
+    }
 
-    const updated = await Budget.findOneAndUpdate(
-      { userId: auth.userId, month },
-      { userId: auth.userId, month, amount: parsedAmount },
-      { upsert: true, new: true },
-    );
+    const updateFields: Record<string, unknown> = { userId: auth.userId, month };
+
+    if (amount !== undefined) {
+      updateFields.amount = amount === null || amount === '' ? null : Math.max(0, Number(amount));
+    }
+
+    if (salary !== undefined) {
+      updateFields.salary = salary === null || salary === '' ? null : Math.max(0, Number(salary));
+    }
+
+    const updated = await Budget.findOneAndUpdate({ userId: auth.userId, month }, updateFields, {
+      upsert: true,
+      new: true,
+    });
+
+    const specificSalary = updated.salary ?? null;
+    const effectiveSalary = specificSalary !== null ? specificSalary : updatedDefaultSalary;
 
     return NextResponse.json({
       month: updated.month,
       amount: updated.amount,
+      salary: specificSalary,
+      defaultSalary: updatedDefaultSalary,
+      effectiveSalary,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to update budget';
