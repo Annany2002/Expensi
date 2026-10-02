@@ -34,6 +34,7 @@ import {
   Moon,
   ChevronDown,
   ChevronUp,
+  Zap,
 } from 'lucide-react';
 
 function formatCurrency(amount: number): string {
@@ -76,6 +77,18 @@ interface PaymentModeData {
   percentage: string;
 }
 
+interface RolloverTimelineItem {
+  month: string;
+  label: string;
+  baseBudget: number | null;
+  rolloverIn: number;
+  effectiveBudget: number | null;
+  spent: number;
+  surplus: number;
+  salary: number | null;
+  netSavings: number | null;
+}
+
 function CustomMonthlyTooltip({
   active,
   payload,
@@ -108,6 +121,46 @@ function CustomMonthlyTooltip({
           <p className="border-t border-neutral-100 pt-1 text-[10px] text-neutral-500 dark:border-neutral-800">
             {data.txnCount} recorded transactions
           </p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
+function CustomRolloverTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: RolloverTimelineItem }>;
+}) {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="rounded-2xl border border-neutral-200 bg-white/95 p-3.5 text-xs shadow-xl backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/95">
+        <p className="mb-1.5 font-bold text-neutral-900 dark:text-white">{data.label}</p>
+        <div className="space-y-1.5">
+          <p className="flex items-center justify-between gap-6 text-indigo-600 dark:text-indigo-400">
+            <span>Effective Budget:</span>
+            <span className="font-semibold">{formatCurrency(data.effectiveBudget || 0)}</span>
+          </p>
+          <p className="flex items-center justify-between gap-6 text-slate-600 dark:text-slate-300">
+            <span>Actual Outflow:</span>
+            <span className="font-semibold">{formatCurrency(data.spent)}</span>
+          </p>
+          <p className="flex items-center justify-between gap-6 font-bold text-emerald-600 dark:text-emerald-400">
+            <span>Surplus Rolled Forward:</span>
+            <span>+{formatCurrency(data.surplus)}</span>
+          </p>
+          {data.salary !== null && (
+            <p className="flex items-center justify-between gap-6 border-t border-neutral-100 pt-1 text-slate-500 dark:border-neutral-800">
+              <span>Net Savings:</span>
+              <span className="font-semibold text-emerald-600">
+                {formatCurrency(data.netSavings || 0)}
+              </span>
+            </p>
+          )}
         </div>
       </div>
     );
@@ -228,6 +281,10 @@ export default function AnalyticsPage() {
     loading,
     allExpenses: expenses,
     allCategories: categories,
+    allBudgets,
+    allSalaries,
+    defaultSalary,
+    enableRollover,
     monthlyBudget,
     setSelectedMonth,
     formatINR,
@@ -245,7 +302,9 @@ export default function AnalyticsPage() {
   const [selectedModeFilter, setSelectedModeFilter] = useState('all');
   const [sortField, setSortField] = useState<'date' | 'amount'>('date');
   const [sortAsc, setSortAsc] = useState(false);
-  const [chartView, setChartView] = useState<'monthly' | 'categories' | 'modes'>('monthly');
+  const [chartView, setChartView] = useState<'monthly' | 'categories' | 'modes' | 'rollover'>(
+    'monthly',
+  );
 
   // Redirect to /auth if not logged in
   useEffect(() => {
@@ -253,6 +312,122 @@ export default function AnalyticsPage() {
       router.replace('/auth');
     }
   }, [user, authLoading, router]);
+
+  const getPreviousMonthString = (m: string) => {
+    const [yStr, mStr] = m.split('-');
+    const y = parseInt(yStr, 10);
+    const mon = parseInt(mStr, 10);
+    const prevDate = new Date(y, mon - 2, 1);
+    const prevY = prevDate.getFullYear();
+    const prevM = String(prevDate.getMonth() + 1).padStart(2, '0');
+    return `${prevY}-${prevM}`;
+  };
+
+  const getNextMonthString = (m: string) => {
+    const [yStr, mStr] = m.split('-');
+    const y = parseInt(yStr, 10);
+    const mon = parseInt(mStr, 10);
+    const nextDate = new Date(y, mon, 1);
+    const nextY = nextDate.getFullYear();
+    const nextM = String(nextDate.getMonth() + 1).padStart(2, '0');
+    return `${nextY}-${nextM}`;
+  };
+
+  const rolloverTimelineData = useMemo(() => {
+    const expensesByMonth: Record<string, number> = {};
+    expenses.forEach((e) => {
+      if (e.month) {
+        expensesByMonth[e.month] = (expensesByMonth[e.month] || 0) + e.amount;
+      }
+    });
+
+    const candidateMonths = new Set<string>();
+    Object.keys(allBudgets || {}).forEach((m) => candidateMonths.add(m));
+    Object.keys(expensesByMonth).forEach((m) => candidateMonths.add(m));
+
+    const validMonths = Array.from(candidateMonths)
+      .filter((m) => /^\d{4}-\d{2}$/.test(m))
+      .sort();
+
+    if (validMonths.length === 0) return [];
+
+    const earliestMonth = validMonths[0];
+    const latestMonth = validMonths[validMonths.length - 1];
+
+    const timelineMonths: string[] = [];
+    let curr = earliestMonth;
+    while (curr <= latestMonth) {
+      timelineMonths.push(curr);
+      curr = getNextMonthString(curr);
+    }
+
+    const timeline: Record<
+      string,
+      {
+        baseBudget: number | null;
+        rolloverIn: number;
+        effectiveBudget: number | null;
+        spent: number;
+        surplus: number;
+        salary: number | null;
+        netSavings: number | null;
+      }
+    > = {};
+
+    const results = [];
+
+    for (const m of timelineMonths) {
+      const pM = getPreviousMonthString(m);
+      const prevEntry = timeline[pM];
+      const rolloverIn =
+        enableRollover && prevEntry && prevEntry.surplus > 0 ? prevEntry.surplus : 0;
+      const baseBudget = allBudgets?.[m] ?? null;
+
+      let effectiveBudget: number | null = null;
+      if (baseBudget !== null || rolloverIn > 0) {
+        effectiveBudget = (baseBudget ?? 0) + rolloverIn;
+      }
+
+      const spent = expensesByMonth[m] || 0;
+      let surplus = 0;
+      if (effectiveBudget !== null && effectiveBudget > 0) {
+        surplus = Math.max(0, effectiveBudget - spent);
+      }
+
+      const sal = allSalaries?.[m] ?? defaultSalary ?? null;
+      const netSavings = sal !== null ? sal - spent : null;
+
+      timeline[m] = {
+        baseBudget,
+        rolloverIn,
+        effectiveBudget,
+        spent,
+        surplus,
+        salary: sal,
+        netSavings,
+      };
+
+      const [y, mon] = m.split('-').map(Number);
+      const label = new Date(y, mon - 1, 1).toLocaleDateString('en-IN', {
+        month: 'short',
+        year: 'numeric',
+      });
+
+      results.push({
+        month: m,
+        label,
+        baseBudget,
+        rolloverIn,
+        effectiveBudget,
+        spent,
+        surplus,
+        salary: sal,
+        netSavings,
+      });
+    }
+
+    return results;
+  }, [allBudgets, expenses, allSalaries, defaultSalary, enableRollover]);
 
   const categoryMap = useMemo(() => {
     const map = new Map<string, { name: string; color: string }>();
@@ -702,6 +877,18 @@ export default function AnalyticsPage() {
               <Wallet size={13} className="sm:size-3.5" />
               <span>Payment Modes</span>
             </button>
+
+            <button
+              onClick={() => setChartView('rollover')}
+              className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all sm:rounded-xl sm:px-3.5 ${
+                chartView === 'rollover'
+                  ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-700 dark:text-white'
+                  : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+              }`}
+            >
+              <Zap size={13} className="sm:size-3.5" />
+              <span>Rollover & Surplus History</span>
+            </button>
           </div>
         </div>
 
@@ -822,7 +1009,7 @@ export default function AnalyticsPage() {
                 ))}
               </div>
             </div>
-          ) : (
+          ) : chartView === 'modes' ? (
             /* Payment Modes Donut & Breakdown */
             <div className="flex flex-col items-center gap-4 sm:gap-6 md:h-80 md:flex-row">
               <div className="h-56 w-full md:h-full md:flex-1">
@@ -880,6 +1067,126 @@ export default function AnalyticsPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          ) : (
+            /* Rollover & Surplus History */
+            <div className="space-y-6">
+              <div className="h-64 w-full sm:h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={rolloverTimelineData}
+                    margin={{ top: 15, right: 10, left: -5, bottom: 5 }}
+                    maxBarSize={48}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}
+                    />
+                    <XAxis
+                      dataKey="label"
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 10 }}
+                    />
+                    <YAxis
+                      width={40}
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 10 }}
+                      tickFormatter={(val) =>
+                        `₹${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`
+                      }
+                    />
+                    <Tooltip
+                      content={<CustomRolloverTooltip />}
+                      cursor={{
+                        fill: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
+                        radius: 8,
+                      }}
+                    />
+                    <Bar
+                      dataKey="effectiveBudget"
+                      name="Effective Budget"
+                      fill={isDark ? '#6366f1' : '#4f46e5'}
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar
+                      dataKey="spent"
+                      name="Total Outflow"
+                      fill={isDark ? '#f43f5e' : '#e11d48'}
+                      radius={[4, 4, 0, 0]}
+                    />
+                    <Bar
+                      dataKey="surplus"
+                      name="Carried Surplus"
+                      fill={isDark ? '#10b981' : '#059669'}
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Rollover History Table */}
+              <div className="overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                <table className="w-full text-left text-xs">
+                  <thead className="border-b border-slate-200/80 bg-slate-50/80 text-[10px] font-bold tracking-wider text-slate-500 uppercase dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
+                    <tr>
+                      <th className="px-3.5 py-2.5">Month</th>
+                      <th className="px-3.5 py-2.5">Base Budget</th>
+                      <th className="px-3.5 py-2.5">Rollover In</th>
+                      <th className="px-3.5 py-2.5">Effective Budget</th>
+                      <th className="px-3.5 py-2.5">Total Spent</th>
+                      <th className="px-3.5 py-2.5">Carried to Next Month</th>
+                      <th className="px-3.5 py-2.5">Net Savings</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                    {rolloverTimelineData.map((row) => (
+                      <tr
+                        key={row.month}
+                        className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30"
+                      >
+                        <td className="px-3.5 py-2.5 font-bold text-slate-900 dark:text-white">
+                          {row.label}
+                        </td>
+                        <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-300">
+                          {row.baseBudget !== null ? formatINR(row.baseBudget) : '—'}
+                        </td>
+                        <td className="px-3.5 py-2.5 font-medium text-indigo-600 dark:text-indigo-400">
+                          {row.rolloverIn > 0 ? `+${formatINR(row.rolloverIn)}` : '—'}
+                        </td>
+                        <td className="px-3.5 py-2.5 font-bold text-slate-800 dark:text-slate-200">
+                          {row.effectiveBudget !== null ? formatINR(row.effectiveBudget) : '—'}
+                        </td>
+                        <td className="px-3.5 py-2.5 font-semibold text-rose-600 dark:text-rose-400">
+                          {formatINR(row.spent)}
+                        </td>
+                        <td className="px-3.5 py-2.5 font-extrabold text-emerald-600 dark:text-emerald-400">
+                          {row.surplus > 0 ? `+${formatINR(row.surplus)}` : '₹0'}
+                        </td>
+                        <td className="px-3.5 py-2.5 font-semibold">
+                          {row.netSavings !== null ? (
+                            <span
+                              className={
+                                row.netSavings >= 0
+                                  ? 'text-emerald-600 dark:text-emerald-400'
+                                  : 'text-rose-600 dark:text-rose-400'
+                              }
+                            >
+                              {row.netSavings >= 0
+                                ? `+${formatINR(row.netSavings)}`
+                                : `-${formatINR(Math.abs(row.netSavings))}`}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
@@ -968,16 +1275,16 @@ export default function AnalyticsPage() {
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
             {/* Search Input */}
             <div className="relative w-full sm:w-52 lg:w-64">
-              <Search
-                size={14}
-                className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400"
-              />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search entries..."
                 className="glass-input w-full py-1.5 pr-3 pl-8! text-xs font-medium"
+              />
+              <Search
+                size={14}
+                className="pointer-events-none absolute top-1/2 left-3 z-10 -translate-y-1/2 text-slate-400 dark:text-slate-500"
               />
             </div>
 

@@ -41,6 +41,7 @@ export interface Expense {
   description: string;
   paymentMethod?: string;
   isEmi: boolean;
+  isRecurring?: boolean;
   emiDetails?: EmiDetails | null;
 }
 
@@ -98,6 +99,13 @@ interface StoreContextType {
   rolloverSurplus: number;
   previousMonthSurplus: PreviousMonthSurplus | null;
   allBudgets: Record<string, number | null>;
+  salary: number | null;
+  defaultSalary: number | null;
+  allSalaries: Record<string, number | null>;
+  netSavings: number | null;
+  savingsRate: number | null;
+  fixedCommitments: number;
+  discretionarySpend: number;
   stats: MonthStats;
   loading: boolean;
   initialLoading: boolean;
@@ -105,6 +113,7 @@ interface StoreContextType {
 
   // Actions
   setMonthlyBudget: (amount: number | null) => Promise<void>;
+  setSalary: (amount: number | null, applyAsDefault?: boolean) => Promise<void>;
   addCategory: (category: { name: string; limit?: number; color?: string }) => Promise<void>;
   editCategory: (
     id: string,
@@ -117,6 +126,7 @@ interface StoreContextType {
     date: string;
     description: string;
     paymentMethod?: string;
+    isRecurring?: boolean;
   }) => Promise<void>;
   editExpense: (
     id: string,
@@ -126,6 +136,7 @@ interface StoreContextType {
       date?: string;
       categoryId?: string;
       paymentMethod?: string;
+      isRecurring?: boolean;
     },
   ) => Promise<void>;
   deleteExpense: (id: string, deleteSeries?: boolean) => Promise<void>;
@@ -164,6 +175,7 @@ interface MonthCachedData {
   categories: Category[];
   expenses: Expense[];
   monthlyBudget: number | null;
+  salary?: number | null;
   stats: MonthStats;
 }
 
@@ -171,6 +183,8 @@ interface GlobalCachedData {
   allCategories: Category[];
   allExpenses: Expense[];
   allBudgets: Record<string, number | null>;
+  defaultSalary?: number | null;
+  allSalaries?: Record<string, number | null>;
 }
 
 interface UserCache {
@@ -218,7 +232,10 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [allExpenses, setAllExpenses] = useState<Expense[]>([]);
   const [monthlyBudget, setMonthlyBudgetState] = useState<number | null>(null);
+  const [salary, setSalaryState] = useState<number | null>(null);
+  const [defaultSalary, setDefaultSalaryState] = useState<number | null>(null);
   const [allBudgets, setAllBudgets] = useState<Record<string, number | null>>({});
+  const [allSalaries, setAllSalaries] = useState<Record<string, number | null>>({});
   const [enableRollover, setEnableRollover] = useState<boolean>(true);
   const [stats, setStats] = useState<MonthStats>({
     allTimeTotalSpent: 0,
@@ -306,11 +323,14 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
                 setCategories(currentMonthCache.categories);
                 setExpenses(currentMonthCache.expenses);
                 setMonthlyBudgetState(currentMonthCache.monthlyBudget);
+                setSalaryState(currentMonthCache.salary ?? null);
                 setStats(currentMonthCache.stats);
                 if (savedCache.global) {
                   setAllCategories(savedCache.global.allCategories);
                   setAllExpenses(savedCache.global.allExpenses);
                   setAllBudgets(savedCache.global.allBudgets);
+                  setDefaultSalaryState(savedCache.global.defaultSalary ?? null);
+                  setAllSalaries(savedCache.global.allSalaries ?? {});
                 }
                 setInitialLoading(false);
               }
@@ -383,7 +403,10 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     setExpenses([]);
     setAllExpenses([]);
     setMonthlyBudgetState(null);
+    setSalaryState(null);
+    setDefaultSalaryState(null);
     setAllBudgets({});
+    setAllSalaries({});
     setStats({
       allTimeTotalSpent: 0,
       allTimeCount: 0,
@@ -402,6 +425,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       setCategories(cached.categories);
       setExpenses(cached.expenses);
       setMonthlyBudgetState(cached.monthlyBudget);
+      setSalaryState(cached.salary ?? null);
       setStats(cached.stats);
     }
   }, []);
@@ -487,21 +511,40 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         }
 
         let freshMonthlyBudget: number | null = null;
+        let freshSalary: number | null = null;
+        let freshDefaultSalary: number | null = null;
         if (budgetRes.ok) {
           const budgetData = await budgetRes.json();
           freshMonthlyBudget = budgetData.amount ?? null;
+          freshSalary = budgetData.effectiveSalary ?? null;
+          freshDefaultSalary = budgetData.defaultSalary ?? null;
           setMonthlyBudgetState(freshMonthlyBudget);
+          setSalaryState(freshSalary);
+          if (freshDefaultSalary !== null) {
+            setDefaultSalaryState(freshDefaultSalary);
+          }
         }
 
         let freshAllBudgets: Record<string, number | null> = {};
+        let freshAllSalaries: Record<string, number | null> = {};
         if (allBudgetsRes.ok) {
           const allBudgetsData = await allBudgetsRes.json();
           const budgetMap: Record<string, number | null> = {};
-          (allBudgetsData.budgets || []).forEach((b: { month: string; amount: number | null }) => {
-            budgetMap[b.month] = b.amount;
-          });
+          const salaryMap: Record<string, number | null> = {};
+          (allBudgetsData.budgets || []).forEach(
+            (b: { month: string; amount: number | null; salary?: number | null }) => {
+              budgetMap[b.month] = b.amount;
+              salaryMap[b.month] = b.salary ?? null;
+            },
+          );
           freshAllBudgets = budgetMap;
+          freshAllSalaries = salaryMap;
+          if (allBudgetsData.defaultSalary !== undefined) {
+            freshDefaultSalary = allBudgetsData.defaultSalary ?? null;
+            setDefaultSalaryState(freshDefaultSalary);
+          }
           setAllBudgets(budgetMap);
+          setAllSalaries(salaryMap);
         }
 
         let freshStats: MonthStats = {
@@ -523,12 +566,15 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
           categories: freshCategories,
           expenses: freshExpenses,
           monthlyBudget: freshMonthlyBudget,
+          salary: freshSalary,
           stats: freshStats,
         };
         cacheRef.current.global = {
           allCategories: freshAllCategories,
           allExpenses: freshAllExpenses,
           allBudgets: freshAllBudgets,
+          defaultSalary: freshDefaultSalary,
+          allSalaries: freshAllSalaries,
         };
         if (user.id) {
           setSessionCache(user.id, cacheRef.current);
@@ -569,6 +615,32 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       await refreshData();
     } catch (err) {
       console.error('Error saving budget:', err);
+    }
+  };
+
+  const setSalary = async (amount: number | null, applyAsDefault = false) => {
+    if (!user) return;
+    try {
+      setSalaryState(amount);
+      if (applyAsDefault) {
+        setDefaultSalaryState(amount);
+      }
+      const payload: Record<string, unknown> = {
+        month: selectedMonth,
+        salary: amount,
+      };
+      if (applyAsDefault) {
+        payload.defaultSalary = amount;
+      }
+      await fetch('/api/budgets', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      invalidateCache();
+      await refreshData();
+    } catch (err) {
+      console.error('Error saving salary:', err);
     }
   };
 
@@ -630,6 +702,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     date: string;
     description: string;
     paymentMethod?: string;
+    isRecurring?: boolean;
   }) => {
     if (!user) return;
     try {
@@ -655,6 +728,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       date?: string;
       categoryId?: string;
       paymentMethod?: string;
+      isRecurring?: boolean;
     },
   ) => {
     if (!user) return;
@@ -842,6 +916,28 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     return (base || 0) + rolloverSurplus;
   }, [monthlyBudget, rolloverSurplus]);
 
+  const totalSpentThisMonth = React.useMemo(() => {
+    return expenses.reduce((sum, e) => sum + e.amount, 0);
+  }, [expenses]);
+
+  const netSavings = React.useMemo(() => {
+    if (salary === null) return null;
+    return salary - totalSpentThisMonth;
+  }, [salary, totalSpentThisMonth]);
+
+  const savingsRate = React.useMemo(() => {
+    if (salary === null || salary <= 0) return null;
+    return Math.round(((salary - totalSpentThisMonth) / salary) * 100);
+  }, [salary, totalSpentThisMonth]);
+
+  const fixedCommitments = React.useMemo(() => {
+    return expenses.filter((e) => e.isEmi || e.isRecurring).reduce((sum, e) => sum + e.amount, 0);
+  }, [expenses]);
+
+  const discretionarySpend = React.useMemo(() => {
+    return expenses.filter((e) => !e.isEmi && !e.isRecurring).reduce((sum, e) => sum + e.amount, 0);
+  }, [expenses]);
+
   return (
     <StoreContext.Provider
       value={{
@@ -863,6 +959,14 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         allExpenses,
         monthlyBudget,
         effectiveBudget,
+        salary,
+        defaultSalary,
+        allSalaries,
+        setSalary,
+        netSavings,
+        savingsRate,
+        fixedCommitments,
+        discretionarySpend,
         enableRollover,
         toggleRollover,
         rolloverSurplus,

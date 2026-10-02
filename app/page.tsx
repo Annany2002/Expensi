@@ -14,6 +14,7 @@ import Footer from '@/components/Footer';
 import LandingPage from '@/components/LandingPage';
 import { exportToCSV, exportToJSON } from '@/lib/export';
 import RolloverBreakdownModal from '@/components/RolloverBreakdownModal';
+import SalaryModal from '@/components/SalaryModal';
 import {
   Plus,
   Settings,
@@ -37,6 +38,7 @@ import {
   ChevronDown,
   Loader2,
   Info,
+  Wallet,
 } from 'lucide-react';
 
 function Skeleton({ className }: { className?: string }) {
@@ -217,6 +219,11 @@ export default function Home() {
     expenses,
     monthlyBudget,
     effectiveBudget,
+    salary,
+    netSavings,
+    savingsRate,
+    fixedCommitments,
+    discretionarySpend,
     enableRollover,
     toggleRollover,
     previousMonthSurplus,
@@ -232,6 +239,7 @@ export default function Home() {
   const [isMonthPickerOpen, setIsMonthPickerOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isRolloverModalOpen, setIsRolloverModalOpen] = useState(false);
+  const [isSalaryModalOpen, setIsSalaryModalOpen] = useState(false);
   const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const [isEditingBudget, setIsEditingBudget] = useState(false);
@@ -306,6 +314,22 @@ export default function Home() {
     const projectedOverspend = Math.max(0, projectedSpend - targetBudget);
     const dailyPaceDiff = Math.max(0, dailyAverage - safeDailyAllowance);
 
+    const exhaustionDays =
+      dailyAverage > 0 && remainingBudget > 0
+        ? Math.floor(remainingBudget / dailyAverage)
+        : remainingBudget <= 0
+          ? 0
+          : null;
+
+    const exhaustionDate =
+      exhaustionDays !== null && isCurrentMonth
+        ? new Date(year, month - 1, dayOfCalc + exhaustionDays)
+        : null;
+
+    const exhaustionDayFormatted = exhaustionDate
+      ? exhaustionDate.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })
+      : null;
+
     return {
       daysInMonth,
       dayOfCalc,
@@ -317,6 +341,9 @@ export default function Home() {
       isPaceOver,
       projectedOverspend,
       dailyPaceDiff,
+      exhaustionDays,
+      exhaustionDate,
+      exhaustionDayFormatted,
       isCurrentMonth,
     };
   }, [effectiveBudget, monthlyBudget, selectedMonth, totalSpentThisMonth]);
@@ -695,8 +722,8 @@ export default function Home() {
 
       {/* Metrics Bento Grid */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-        {/* Card 1: Month Spending, Limit, and Progress (5 cols on lg) */}
-        <div className="glass-panel relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-5 lg:col-span-5">
+        {/* Card 1: Month Spending, Limit, and Progress (3 cols on lg) */}
+        <div className="glass-panel relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-5 lg:col-span-3">
           {/* Ambient Card Background Glow */}
           <div className="pointer-events-none absolute -top-24 -right-24 h-56 w-56 rounded-full bg-indigo-500/10 blur-3xl dark:bg-indigo-500/15" />
 
@@ -802,9 +829,6 @@ export default function Home() {
                 </label>
                 <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
                   <div className="relative min-w-35 flex-1">
-                    <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-xs font-bold text-slate-400">
-                      ₹
-                    </span>
                     <input
                       type="number"
                       value={newBudget}
@@ -813,6 +837,9 @@ export default function Home() {
                       className="glass-input w-full py-2 pl-7! text-xs font-bold"
                       autoFocus
                     />
+                    <span className="pointer-events-none absolute top-1/2 left-3 z-10 -translate-y-1/2 text-xs font-bold text-slate-400 dark:text-slate-500">
+                      ₹
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <button
@@ -899,10 +926,151 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Card 2: Daily Runway & Safe Pace (4 cols on lg) */}
-        <div className="glass-panel relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-5 lg:col-span-4">
+        {/* Card 2: Monthly Income & Net Savings (3 cols on lg) */}
+        <div className="glass-panel relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-5 lg:col-span-3">
           {/* Ambient Card Background Glow */}
           <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-emerald-500/10 blur-3xl dark:bg-emerald-500/15" />
+
+          <div>
+            {/* Header / Limit Title & Settings */}
+            <div className="flex h-7 items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-bold tracking-wider text-slate-500 uppercase dark:text-slate-400">
+                  {monthTitle} Income
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsSalaryModalOpen(true)}
+                  className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-white"
+                  title="Configure Monthly Salary"
+                >
+                  <Settings size={12} />
+                </button>
+              </div>
+
+              {salary !== null ? (
+                <span
+                  className={`flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-bold shadow-2xs backdrop-blur-md ${
+                    (savingsRate ?? 0) >= 0
+                      ? 'border-emerald-200/90 bg-emerald-50/90 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/50 dark:text-emerald-300'
+                      : 'border-rose-200/90 bg-rose-50/90 text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/50 dark:text-rose-300'
+                  }`}
+                >
+                  <Wallet size={11} />
+                  {(savingsRate ?? 0) >= 0 ? `${savingsRate}% Saved` : 'Deficit'}
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsSalaryModalOpen(true)}
+                  className="rounded-full border border-indigo-200/80 bg-indigo-50/80 px-2.5 py-0.5 text-[11px] font-bold text-indigo-600 transition-colors hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300"
+                >
+                  + Add Salary
+                </button>
+              )}
+            </div>
+
+            {/* Total Net Savings / Status */}
+            <div className="mt-3">
+              {salary !== null ? (
+                <>
+                  <div className="flex items-baseline gap-2">
+                    <h3
+                      className={`text-3xl font-black tracking-tight sm:text-4xl ${
+                        (netSavings ?? 0) >= 0
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : 'text-rose-600 dark:text-rose-400'
+                      }`}
+                    >
+                      {formatINR(netSavings ?? 0)}
+                    </h3>
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                      saved
+                    </span>
+                  </div>
+
+                  <div className="mt-2 flex h-7 items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">
+                      Salary: {formatINR(salary)}
+                    </span>
+                    <span className="text-slate-300 dark:text-slate-600">•</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsSalaryModalOpen(true)}
+                      className="font-semibold text-indigo-600 underline decoration-indigo-200 underline-offset-2 transition-colors hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-baseline gap-2">
+                    <h3 className="text-3xl font-black tracking-tight text-slate-400 dark:text-slate-600">
+                      ₹--
+                    </h3>
+                    <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
+                      no salary set
+                    </span>
+                  </div>
+
+                  <div className="mt-2 flex h-7 items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                    <button
+                      type="button"
+                      onClick={() => setIsSalaryModalOpen(true)}
+                      className="font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
+                    >
+                      Set salary to track savings
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Savings Rate Progress Meter */}
+          <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800/60">
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-slate-500 dark:text-slate-400">
+                  {salary !== null ? (
+                    <>
+                      Savings Rate:{' '}
+                      <span className="font-black text-slate-900 dark:text-white">
+                        {savingsRate ?? 0}%
+                      </span>
+                    </>
+                  ) : (
+                    'Savings Rate: --'
+                  )}
+                </span>
+                <span className="font-semibold text-slate-500 dark:text-slate-400">
+                  Spent: {formatINR(totalSpentThisMonth)}
+                </span>
+              </div>
+
+              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800/80">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    (savingsRate ?? 0) >= 40
+                      ? 'bg-linear-to-r from-emerald-500 to-teal-400 shadow-xs shadow-emerald-500/40'
+                      : (savingsRate ?? 0) > 0
+                        ? 'bg-linear-to-r from-amber-500 to-emerald-400 shadow-xs shadow-amber-500/40'
+                        : 'bg-linear-to-r from-rose-500 to-red-400 shadow-xs shadow-rose-500/40'
+                  }`}
+                  style={{
+                    width: `${Math.min(Math.max(0, savingsRate ?? 0), 100)}%`,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Daily Runway & Safe Pace (3 cols on lg) */}
+        <div className="glass-panel relative flex flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-5 lg:col-span-3">
+          {/* Ambient Card Background Glow */}
+          <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-indigo-500/10 blur-3xl dark:bg-indigo-500/15" />
 
           <div>
             {/* Header / Status Badge */}
@@ -912,9 +1080,18 @@ export default function Home() {
               </span>
               {runwayStats &&
                 (runwayStats.isPaceOver ? (
-                  <span className="flex items-center gap-1 rounded-full border border-amber-200/80 bg-amber-50/90 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 shadow-2xs dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-300">
+                  <span
+                    className="flex items-center gap-1 rounded-full border border-amber-200/80 bg-amber-50/90 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 shadow-2xs dark:border-amber-900/50 dark:bg-amber-950/50 dark:text-amber-300"
+                    title={
+                      runwayStats.exhaustionDayFormatted
+                        ? `Projected budget exhaustion on ${runwayStats.exhaustionDayFormatted}`
+                        : undefined
+                    }
+                  >
                     <AlertTriangle size={11} />
-                    Proj. Overspend: +{formatINR(Math.round(runwayStats.projectedOverspend))}
+                    {runwayStats.exhaustionDayFormatted
+                      ? `Exhausts ${runwayStats.exhaustionDayFormatted}`
+                      : `+${formatINR(Math.round(runwayStats.dailyPaceDiff))}/d`}
                   </span>
                 ) : (
                   <span className="flex items-center gap-1 rounded-full border border-emerald-200/80 bg-emerald-50/90 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 shadow-2xs dark:border-emerald-900/50 dark:bg-emerald-950/50 dark:text-emerald-300">
@@ -1046,9 +1223,34 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Dynamic EMIs or Avg Transaction Chip */}
+          {/* Dynamic Fixed Commitments (Bills & EMIs) or Avg Transaction Chip */}
           <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800/60">
-            {stats.monthEmiTotal > 0 ? (
+            {fixedCommitments > 0 ? (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-500 dark:text-slate-400">
+                    Fixed Bills & EMIs:{' '}
+                    <span className="font-black text-purple-600 dark:text-purple-400">
+                      {formatINR(fixedCommitments)}
+                    </span>
+                  </span>
+                  <span className="font-bold text-slate-700 dark:text-slate-300">
+                    Free: {formatINR(discretionarySpend)}
+                  </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800/80">
+                  <div
+                    className="h-full rounded-full bg-linear-to-r from-purple-500 to-indigo-500 shadow-xs shadow-purple-500/30 transition-all duration-500"
+                    style={{
+                      width:
+                        totalSpentThisMonth > 0
+                          ? `${Math.min(Math.round((fixedCommitments / totalSpentThisMonth) * 100), 100)}%`
+                          : '0%',
+                    }}
+                  />
+                </div>
+              </div>
+            ) : stats.monthEmiTotal > 0 ? (
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-semibold text-slate-500 dark:text-slate-400">
@@ -1219,6 +1421,11 @@ export default function Home() {
         enableRollover={enableRollover}
         onToggleRollover={handleToggleRolloverWithToast}
         formatINR={formatINR}
+      />
+      <SalaryModal
+        isOpen={isSalaryModalOpen}
+        onClose={() => setIsSalaryModalOpen(false)}
+        currentMonthTitle={monthTitle}
       />
     </main>
   );
