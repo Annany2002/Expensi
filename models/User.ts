@@ -4,6 +4,7 @@ export interface IUser extends Document {
   email: string;
   passwordHash: string;
   name?: string;
+  defaultSalary?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,6 +27,11 @@ const UserSchema = new Schema<IUser>(
       type: String,
       trim: true,
       default: '',
+    },
+    defaultSalary: {
+      type: Number,
+      default: null,
+      min: 0,
     },
   },
   {

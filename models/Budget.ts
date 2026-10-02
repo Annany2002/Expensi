@@ -4,6 +4,7 @@ export interface IBudget extends Document {
   userId: Types.ObjectId;
   month: string; // "YYYY-MM"
   amount: number | null;
+  salary?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,6 +23,11 @@ const BudgetSchema = new Schema<IBudget>(
       index: true,
     },
     amount: {
+      type: Number,
+      default: null,
+      min: 0,
+    },
+    salary: {
       type: Number,
       default: null,
       min: 0,
